@@ -5,7 +5,7 @@ From the front-end directory
 % cp -r dist ../docker
 
 # Create Docker Container
-% cd ../docker
-% docker build -t edts:1.1
-% docker create --name edts-docker -P -t -p 80:80 edts:1.0
-% docker start edts-docker
+% cd ../docker<br>
+% docker build -t edts:1.1<br>
+% docker create --name edts-docker -P -t -p 80:80 edts:1.1 .<br>
+% docker start edts-docker<br>

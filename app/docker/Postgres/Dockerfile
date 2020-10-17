@@ -1,0 +1,4 @@
+FROM postgres:latest
+ENV POSTGRES_PASSWORD newhat
+ENV POSTGRES_USER edts
+ENV POSTGRES_DB edts

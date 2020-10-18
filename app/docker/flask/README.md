@@ -1,3 +1,7 @@
+#Quick start
+% bash buildNKickoff.sh
+
+
 # Create Docker Container
 % cp ../../back-end .
 % docker build -t edts-flask:1.1 .<br>

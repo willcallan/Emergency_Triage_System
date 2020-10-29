@@ -1,0 +1,4 @@
+responses:
+  200:
+    description: Updates or inserts patient data into server
+    example: Test Patient

@@ -1,0 +1,4 @@
+responses:
+  200:
+    description: Searches for a patient in the server
+    example: Test Patient

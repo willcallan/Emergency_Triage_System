@@ -3,6 +3,7 @@ from flasgger.utils import swag_from
 import json
 from typing import List
 from datetime import date
+import requests
 
 from fhirclient import client
 import fhirclient.models.patient as pat
@@ -39,39 +40,33 @@ def get_default_patient() -> pat.Patient:
     return patient
 
 
-@patient_endpoint.route('/patient/save')
+@patient_endpoint.route('/patient/save', methods=['POST'])
 @swag_from('static/patient_save.yml')
 def patient_save():
+    # Get the posted patient
+    data_json = request.get_json()
     smart = client.FHIRClient(settings=settings)
+    patient = pat.Patient(jsondict=data_json)
 
-    # For now, just generate a default patient
-    patient = get_default_patient()
-
-    # If the patient has no ID, insert them into the server
+    # If the patient has no ID (i.e. entered locally), insert them into the server
     if patient.id is None:
         status = patient.create(smart.server)
-        if status is not None:
-            return f'Patient created (no id): {status["id"]}'
-        else:
-            return 'ERROR: Something went wrong when creating this patient'
-
-    # Search for the patient by their ID
-    search = pat.Patient.where(struct={'_id': patient.id})
-    patients: List[pat.Patient] = search.perform_resources(smart.server)
-    # If a patient with that ID is found, update them
-    if len(patients) != 0:
-        status = patient.update(smart.server)
-        if status is not None:
-            return f'Patient updated: {status["id"]}'
-        else:
-            return 'ERROR: Something went wrong when updating this patient'
-        # If no patient with that ID is found, create them
-    else:
-        status = patient.create(smart.server)
-        if status is not None:
+        if 'id' in status:
             return f'Patient created: {status["id"]}'
         else:
-            return 'ERROR: Something went wrong when creating this patient'
+            return f'ERROR creating patient:\n{status}'
+
+    # See if the patient is in the FHIR server;
+    # This will throw an error if they have an erroneous ID
+    searched_patient = pat.Patient.read(patient.id, smart.server)
+    # If the patient is in the server, update them
+    if searched_patient:
+        status = patient.update(smart.server)
+        if 'id' in status:
+            return f'Patient updated: {status["id"]}'
+        else:
+            return f'ERROR updating patient:\n{status}'
+    return 'ERROR: Search result for this patient in the server returned null.'
 
 
 @patient_endpoint.route('/patient', methods=['GET'])
@@ -92,7 +87,9 @@ def patient_search():
         ret_dict['name'] = smart.human_name(patient.name[0])
         ret_dict['age'] = get_age(patient.birthDate.isostring)
 
-    return json.dumps(ret_dict, indent=4)
+    p: pat.Patient = get_default_patient()
+
+    return p.as_json() # json.dumps(ret_dict, indent=4)
 
 
 def get_age(birthdate):

@@ -1,9 +1,7 @@
 from flask import Blueprint, request
 from flasgger.utils import swag_from
 import json
-from typing import List
 from datetime import date
-import requests
 
 from fhirclient import client
 import fhirclient.models.patient as pat
@@ -72,7 +70,7 @@ def patient_save():
 @patient_endpoint.route('/patient', methods=['GET'])
 @swag_from('static/patient_search.yml')
 def patient_search():
-    patient_id = request.args.get('id', default='a4c45fe9-e586-4de4-b6da-78d72e91a4bb')
+    patient_id = request.args.get('id')
 
     if not patient_id:
         return ''
@@ -87,9 +85,7 @@ def patient_search():
         ret_dict['name'] = smart.human_name(patient.name[0])
         ret_dict['age'] = get_age(patient.birthDate.isostring)
 
-    p: pat.Patient = get_default_patient()
-
-    return p.as_json() # json.dumps(ret_dict, indent=4)
+    return json.dumps(ret_dict, indent=4)
 
 
 def get_age(birthdate):

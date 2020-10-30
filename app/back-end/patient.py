@@ -77,6 +77,10 @@ def patient_save():
 @swag_from('static/patient_search.yml')
 def patient_search():
     patient_id = request.args.get('id', default='d0190651-b9b0-4513-8f3b-d542319220d1', type=str)
+
+    if not patient_id:
+        return ''
+    
     smart = client.FHIRClient(settings=settings)
     # Search for the patient by their id
     search = pat.Patient.where(struct={'_id': patient_id})

@@ -80,7 +80,7 @@ def patient_search():
 
     if not patient_id:
         return ''
-    
+
     smart = client.FHIRClient(settings=settings)
     # Search for the patient by their id
     search = pat.Patient.where(struct={'_id': patient_id})

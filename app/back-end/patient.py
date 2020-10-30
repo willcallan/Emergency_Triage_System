@@ -37,7 +37,8 @@ def get_default_patient() -> pat.Patient:
 
     return patient
 
-@patient_data.route("/patient/save")
+
+@patient_data.route('/patient/save')
 @swag_from('static/patient_save.yml')
 def patient_save():
     smart = client.FHIRClient(settings=settings)
@@ -72,7 +73,7 @@ def patient_save():
             return 'ERROR: Something went wrong when creating this patient'
 
 
-@patient_data.route("/patient")
+@patient_data.route('/patient', methods=['GET'])
 @swag_from('static/patient_search.yml')
 def patient_search():
     patient_id = request.args.get('id', default='d0190651-b9b0-4513-8f3b-d542319220d1', type=str)
@@ -82,6 +83,6 @@ def patient_search():
     # Here I am declaring the search results as a list of Patient objects, to make referencing them easier in the IDE
     patients: List[pat.Patient] = search.perform_resources(smart.server)
     if len(patients) != 0:
-        return smart.human_name(patients[0].name[0])
+        return patients[0].as_json()
     else:
-        return 'ERROR'
+        return f'ERROR: No patient with ID {patient_id} found'

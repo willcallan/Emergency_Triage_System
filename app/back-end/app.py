@@ -4,13 +4,15 @@ import socket
 
 # Import routes
 from hello import hello_world
-from patient import patient_data
+from patient import patient_endpoint
+from staff import staff_endpoint
 
 app = Flask(__name__)
 
 # Route registration
 app.register_blueprint(hello_world)
-app.register_blueprint(patient_data)
+app.register_blueprint(patient_endpoint)
+app.register_blueprint(staff_endpoint)
 
 hostname = socket.gethostname()
 IPAddr = socket.gethostbyname(hostname)

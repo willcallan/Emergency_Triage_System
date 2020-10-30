@@ -11,7 +11,7 @@ from typing import List
 from vars import settings
 from flasgger.utils import swag_from
 
-patient_data = Blueprint('patient_data', __name__)
+patient_endpoint = Blueprint('patient_endpoint', __name__)
 
 
 def get_default_patient() -> pat.Patient:
@@ -38,7 +38,7 @@ def get_default_patient() -> pat.Patient:
     return patient
 
 
-@patient_data.route('/patient/save')
+@patient_endpoint.route('/patient/save')
 @swag_from('static/patient_save.yml')
 def patient_save():
     smart = client.FHIRClient(settings=settings)
@@ -73,7 +73,7 @@ def patient_save():
             return 'ERROR: Something went wrong when creating this patient'
 
 
-@patient_data.route('/patient', methods=['GET'])
+@patient_endpoint.route('/patient', methods=['GET'])
 @swag_from('static/patient_search.yml')
 def patient_search():
     patient_id = request.args.get('id', default='d0190651-b9b0-4513-8f3b-d542319220d1', type=str)

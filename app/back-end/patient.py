@@ -1,4 +1,8 @@
 from flask import Blueprint, request
+from flasgger.utils import swag_from
+import json
+from typing import List
+from datetime import date
 
 from fhirclient import client
 import fhirclient.models.patient as pat
@@ -6,10 +10,7 @@ from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.fhirdate import FHIRDate
 from fhirclient.models.humanname import HumanName
 
-from typing import List
-
 from vars import settings
-from flasgger.utils import swag_from
 
 patient_endpoint = Blueprint('patient_endpoint', __name__)
 
@@ -76,16 +77,32 @@ def patient_save():
 @patient_endpoint.route('/patient', methods=['GET'])
 @swag_from('static/patient_search.yml')
 def patient_search():
-    patient_id = request.args.get('id', default='d0190651-b9b0-4513-8f3b-d542319220d1', type=str)
+    patient_id = request.args.get('id', default='a4c45fe9-e586-4de4-b6da-78d72e91a4bb')
 
     if not patient_id:
         return ''
 
+    # Get the patient by their id
     smart = client.FHIRClient(settings=settings)
-    # Search for the patient by their id
-    search = pat.Patient.where(struct={'_id': patient_id})
-    patients: List[pat.Patient] = search.perform_resources(smart.server)
-    if len(patients) != 0:
-        return patients[0].as_json()
-    else:
-        return f'ERROR: No patient with ID {patient_id} found'
+    patient: pat.Patient = pat.Patient.read(patient_id, smart.server)
+
+    # Create the return dictionary from the data
+    ret_dict = {}
+    if patient:
+        ret_dict['name'] = smart.human_name(patient.name[0])
+        ret_dict['age'] = get_age(patient.birthDate.isostring)
+
+    return json.dumps(ret_dict, indent=4)
+
+
+def get_age(birthdate):
+    """Calculates a person's age from their birthdate
+
+    :param str birthdate: ISO date formatted string
+    :returns: The age of the person
+    """
+    today = date.today()
+    age = today.year - int(birthdate[0:4])
+    age -= ((today.month, today.day) < (int(birthdate[5:7]), int(birthdate[8:10])))
+    return age
+

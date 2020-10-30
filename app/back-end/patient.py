@@ -84,7 +84,6 @@ def patient_search():
     smart = client.FHIRClient(settings=settings)
     # Search for the patient by their id
     search = pat.Patient.where(struct={'_id': patient_id})
-    # Here I am declaring the search results as a list of Patient objects, to make referencing them easier in the IDE
     patients: List[pat.Patient] = search.perform_resources(smart.server)
     if len(patients) != 0:
         return patients[0].as_json()

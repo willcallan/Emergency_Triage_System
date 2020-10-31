@@ -4,6 +4,8 @@ from fhirclient import client
 import json
 import fhirclient.models.practitioner as pract
 import fhirclient.models.practitionerrole as prole
+import fhirclient.models.contactpoint as cnt
+import fhirclient.models.humanname as nm
 
 
 from vars import settings
@@ -38,6 +40,87 @@ def search_staff():
     return json.dumps(ret_dict,indent=4)
 
 
+@staff_endpoint.route("/staff/save", methods=['POST'])
+def save_or_update_staff():
+
+    req_data = request.json
+
+    if not req_data:
+        return ''
+
+    smart = client.FHIRClient(settings=settings)
+
+    if req_data['id']:
+        return update_practitioner(req_data,smart)
+
+
+def update_practitioner(req_data,smart):
+    practitioner = pract.Practitioner.read(req_data['id'], smart.server)
+    role_search = prole.PractitionerRole.where(struct={'practitioner': req_data['id']})
+    results = role_search.perform(smart.server)
+    old_roles, old_specialties = get_main_role_and_specialty(results)
+
+    old_roles = old_roles.split(", ")
+    old_specialties = old_specialties.split(", ")
+
+    names = req_data['name'].split(" ")
+
+    if not practitioner.name:
+        practitioner.name = [nm.HumanName()]
+
+    if len(names) == 3:
+        if practitioner.name[0].prefix:
+            practitioner.name[0].prefix[0] = names[0]
+        else:
+            practitioner.name[0].prefix = [names[0]]
+
+        if practitioner.name[0].given:
+            practitioner.name[0].given[0] = names[1]
+        else:
+            practitioner.name[0].given = [names[1]]
+
+        practitioner.name[0].family = names[2]
+
+    elif len(names) == 2:
+        practitioner.name[0].given[0] = names[0]
+        practitioner.name[0].family = names[1]
+
+    if req_data['email'] and req_data['email'] != "":
+        if practitioner.telecom:
+            email_update = False
+            for com in practitioner.telecom:
+                if com.system == "email":
+                    com.value = req_data['email']
+                    email_update = True
+
+            if not email_update:
+                if practitioner.telecom:
+                    point = cnt.ContactPoint()
+                    point.system = "email"
+                    point.value = req_data["email"]
+                    practitioner.telecom.append(point)
+
+    if req_data['contact'] and req_data['contact'] != "":
+        if practitioner.telecom:
+            phone_update = False
+            for com in practitioner.telecom:
+                if com.system == "phone":
+                    com.value = req_data['contact']
+                    email_update = True
+
+            if not phone_update:
+                if practitioner.telecom:
+                    point = cnt.ContactPoint()
+                    point.system = "phone"
+                    point.value = req_data["contact"]
+                    practitioner.telecom.append(point)
+
+    practitioner.update(smart.server)
+
+    return 'OK'
+
+
+
 def get_email(telecoms):
     if telecoms is not None:
         for tele in telecoms:
@@ -52,6 +135,7 @@ def get_phone(telecoms):
             if tele.system == 'phone':
                 return tele.value
     return ''
+
 
 def get_main_role_and_specialty(roleSearchResults):
     if roleSearchResults.total > 0:

@@ -1,0 +1,4 @@
+responses:
+  200:
+    description: A sample patient from the FHIR server
+    example: Test Patient

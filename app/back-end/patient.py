@@ -1,3 +1,5 @@
+import random
+
 from flask import Blueprint, request
 from flasgger.utils import swag_from
 import json
@@ -17,30 +19,6 @@ from fhirclient.models.humanname import HumanName
 from vars import settings, esi_lookup
 
 patient_endpoint = Blueprint('patient_endpoint', __name__)
-
-
-def get_default_patient() -> pat.Patient:
-    patient = pat.Patient()
-    # Set their name
-    name = HumanName()
-    name.given = ['John']
-    name.family = 'Test'
-    patient.name = [name]
-    # Set their gender
-    patient.gender = 'male'
-    # Set their birth date
-    patient.birthDate = FHIRDate('1950-01-01')
-    # Add a phone number
-    tele = ContactPoint()
-    tele.system = 'phone'
-    tele.value = '555-100-9999'
-    tele.use = 'home'
-    patient.telecom = [tele]
-
-    # Set their ID
-    patient.id = '628532'
-
-    return patient
 
 
 @patient_endpoint.route('/patient/save', methods=['POST'])
@@ -86,32 +64,43 @@ def patient_search():
     patient_id = request.args.get('id')
 
     if not patient_id:
-        return ''
+        return default_patients() # ''
 
     # Get the patient by their id
     smart = client.FHIRClient(settings=settings)
     patient: pat.Patient = pat.Patient.read(patient_id, smart.server)
 
     # Create the return dictionary from the data
+    return get_patient_data(patient, smart)
+
+
+def get_patient_data(patient, smart) -> str:
+    """
+    Returns json dict object for a patient (according to front-end specifications).
+
+    :param pat.Patient patient: The patient being measured.
+    :param client.FHIRClient smart: SMART client.
+    :return: JSON formatted string of the patient's data.
+    """
     ret_dict = {}
     if patient:
         # Patient data
         ret_dict['name'] = smart.human_name(patient.name[0])
         ret_dict['age'] = get_age(patient)
         # ESI data
-        esi, code, display = get_esi(patient, smart)
+        esi, code, display = random_esi() # get_esi(patient, smart)
         ret_dict['esi'] = esi
         ret_dict['code'] = code
         ret_dict['display'] = display
         # ER data
-        ret_dict['checkedin'] = get_checkin_time(patient, smart)
-        lastseen, seenby = get_last_seen(patient, smart)
-        ret_dict['lastseen'] = lastseen
-        ret_dict['seenby'] = seenby
+        ret_dict['checkedin'] = random_checkin() # get_checkin_time(patient, smart)
         # Data from project database
         # TODO: Hook this up to the project database, FHIR doesn't store this data
-        ret_dict['location'] = 'TODO: Use project database'
-        ret_dict['status'] = 'TODO: Use project database'
+        lastseen, seenby = random_lastseen() # get_last_seen(patient, smart)
+        ret_dict['lastseen'] = lastseen
+        ret_dict['seenby'] = seenby
+        ret_dict['location'] = random.choice(['Waiting room', 'Room 101', 'Room 113', 'Room 204', 'ICU'])
+        ret_dict['status'] = random.choice(['1', '2', '3', '4'])
 
     return json.dumps(ret_dict, indent=4)
 
@@ -151,6 +140,7 @@ def get_esi(patient, smart) -> Tuple[str, str, str]:
     # If they don't, return empty values
     else:
         return '', '', ''
+
 
 def get_checkin_time(patient, smart) -> str:
     """
@@ -231,3 +221,31 @@ def get_role(observation, smart) -> str:
         ):
             return results[0].code[0].coding[0].display
     return ''
+
+
+# ---TEMP CODE---
+def random_esi():
+    code = random.choice(list(esi_lookup))
+    return esi_lookup[code]
+
+
+def random_checkin():
+    return random.choice(['1 hour ago', '2 hours ago', '3 hours ago', '30 minutes ago'])
+
+
+def random_lastseen():
+    return random.choice(['0 minutes ago', '1 minute ago', '2 minutes ago', '3 minutes ago']), random.choice(['Doctor', 'Nurse'])
+
+
+def default_patients():
+    default_ids = ['fc200fa2-12c9-4276-ba4a-e0601d424e55', '39234650-0229-4aee-975b-c8ee68bab40b',
+                   '86512c6f-caf6-41f4-9503-e4270b37b94f', 'bf3cb50a-d753-4ddc-ad83-839250edcba9',
+                   'a4c45fe9-e586-4de4-b6da-78d72e91a4bb']
+    ret_list = []
+    smart = client.FHIRClient(settings=settings)
+
+    for pat_id in default_ids:
+        patient = pat.Patient.read(pat_id, smart.server)
+        ret_list.append(get_patient_data(patient, smart))
+
+    return ', '.join(ret_list)

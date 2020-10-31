@@ -1,4 +1,3 @@
-from fhirclient.models.meta import Meta
 from flask import Blueprint, request
 from flasgger.utils import swag_from
 import json
@@ -10,6 +9,7 @@ from fhirclient import client
 import fhirclient.models.patient as pat
 import fhirclient.models.observation as obs
 import fhirclient.models.encounter as enc
+import fhirclient.models.practitionerrole as prole
 from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.fhirdate import FHIRDate
 from fhirclient.models.humanname import HumanName
@@ -178,6 +178,7 @@ def get_checkin_time(patient, smart) -> str:
     else:
         return ''
 
+
 def get_last_seen(patient, smart) -> Tuple[str, str]:
     """
     Returns details about the last time a patient was checked on.
@@ -195,12 +196,15 @@ def get_last_seen(patient, smart) -> Tuple[str, str]:
 
     # If they have one...
     if len(results) > 0:
+        observation = results[0]
         # Get the time the observation was last updated
-        start = datetime.strptime(results[0].meta.lastUpdated.isostring, '%Y-%m-%dT%H:%M:%S%z')
+        start = datetime.strptime(observation.meta.lastUpdated.isostring, '%Y-%m-%dT%H:%M:%S%z')
         now = utc.localize(datetime.utcnow())
         difference = int((now - start).total_seconds() / 60)  # Get difference in minutes
         # Get the practitioner who issued the observation
-        
+        rolesearch = prole.PractitionerRole.where(struct={'practitioner': observation.performer[0].reference})
+        results = rolesearch.perform(smart.server)
+        roles, specialties = get_main_role_and_specialty(results)
 
         return f'{difference} minute{"" if difference == 1 else "s"} ago', ''
     # If they don't have one, return empty values

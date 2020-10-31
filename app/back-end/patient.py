@@ -1,15 +1,20 @@
+from fhirclient.models.meta import Meta
 from flask import Blueprint, request
 from flasgger.utils import swag_from
 import json
-from datetime import date
+from typing import Tuple, List
+from datetime import datetime
+from pytz import utc
 
 from fhirclient import client
 import fhirclient.models.patient as pat
+import fhirclient.models.observation as obs
+import fhirclient.models.encounter as enc
 from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.fhirdate import FHIRDate
 from fhirclient.models.humanname import HumanName
 
-from vars import settings
+from vars import settings, esi_lookup
 
 patient_endpoint = Blueprint('patient_endpoint', __name__)
 
@@ -49,7 +54,11 @@ def patient_save():
     # If the patient has no ID (i.e. entered locally), insert them into the server
     if patient.id is None:
         status = patient.create(smart.server)
-        if 'id' in status:
+        if (
+            status is not None
+            and 'resourceType' in status
+            and status['resourceType'] == 'Patient'
+        ):
             return f'Patient created: {status["id"]}'
         else:
             return f'ERROR creating patient:\n{status}'
@@ -60,7 +69,11 @@ def patient_save():
     # If the patient is in the server, update them
     if searched_patient:
         status = patient.update(smart.server)
-        if 'id' in status:
+        if (
+            status is not None
+            and 'resourceType' in status
+            and status['resourceType'] == 'Patient'
+        ):
             return f'Patient updated: {status["id"]}'
         else:
             return f'ERROR updating patient:\n{status}'
@@ -82,20 +95,114 @@ def patient_search():
     # Create the return dictionary from the data
     ret_dict = {}
     if patient:
+        # Patient data
         ret_dict['name'] = smart.human_name(patient.name[0])
-        ret_dict['age'] = get_age(patient.birthDate.isostring)
+        ret_dict['age'] = get_age(patient)
+        # ESI data
+        esi, code, display = get_esi(patient, smart)
+        ret_dict['esi'] = esi
+        ret_dict['code'] = code
+        ret_dict['display'] = display
+        # ER data
+        ret_dict['checkedin'] = get_checkin_time(patient, smart)
+        lastseen, seenby = get_last_seen(patient, smart)
+        ret_dict['lastseen'] = lastseen
+        ret_dict['seenby'] = seenby
+        # Data from project database
+        # TODO: Hook this up to the project database, FHIR doesn't store this data
+        ret_dict['location'] = 'TODO: Use project database'
+        ret_dict['status'] = 'TODO: Use project database'
 
     return json.dumps(ret_dict, indent=4)
 
 
-def get_age(birthdate):
-    """Calculates a person's age from their birthdate
-
-    :param str birthdate: ISO date formatted string
-    :returns: The age of the person
+def get_age(patient) -> int:
     """
-    today = date.today()
-    age = today.year - int(birthdate[0:4])
-    age -= ((today.month, today.day) < (int(birthdate[5:7]), int(birthdate[8:10])))
+    Calculate a patient's age.
+
+    :param pat.Patient patient: The patient being measured.
+    :returns: The age of the patient in years.
+    """
+    birthdate = datetime.strptime(patient.birthDate.isostring, '%Y-%m-%d')
+    today = datetime.today()
+    age = int((today - birthdate).days / 365.2425)
     return age
 
+
+def get_esi(patient, smart) -> Tuple[str, str, str]:
+    """
+    Returns data regarding a patient's ESI observation.
+
+    :param pat.Patient patient: The patient being searched for.
+    :param client.FHIRClient smart: SMART client.
+    :return: ESI rating (1-5), code (FHIR coding), and display (plain text version of code).
+    """
+    # Search the observations to see if this subject has an ESI rating
+    # FIXME: This might cause false values to appear if the patient has an ESI obs from a different hospital visit
+    search = obs.Observation.where(struct={'subject': f'Patient/{patient.id}',
+                                           'code': '75636-1',               # LOINC code for ESI rating
+                                           '_sort': '-date',                # Sort the observations newest-oldest
+                                           '_count': '1'})                  # Look at only the most recent observation
+    results = search.perform_resources(smart.server)
+
+    # If they do, return the requested ESI data
+    if len(results) > 0:
+        return esi_lookup[results[0].valueCodeableConcept.coding[0].code]
+    # If they don't, return empty values
+    else:
+        return '', '', ''
+
+def get_checkin_time(patient, smart) -> str:
+    """
+    Returns how long ago the patient was checked in.
+
+    :param pat.Patient patient: The patient being searched for.
+    :param client.FHIRClient smart: SMART client.
+    :return: Relative time when the patient checked in (e.g. 9.50 hours ago).
+    """
+    # Search the encounters for the patient's most recent one
+    # FIXME: This might cause false values to appear if the patient has an ER enc from a different hospital visit
+    search = enc.Encounter.where(struct={'subject': f'Patient/{patient.id}',
+                                         'type': '50849002',                # SNOMED code for ER admission
+                                         '_sort': '-date',                  # Sort the encounters newest-oldest
+                                         '_count': '1'})                    # Look at only the most recent encounter
+    results: List[enc.Encounter] = search.perform_resources(smart.server)
+
+    # If they have one, return the time the encounter started
+    if len(results) > 0:
+        start = datetime.strptime(results[0].period.start.isostring, '%Y-%m-%dT%H:%M:%S%z')
+        now = utc.localize(datetime.utcnow())
+        difference = "{:.2f}".format((now - start).total_seconds() / (60 * 60)) # Get difference in hours, to 2 decimal places
+        return f'{difference} hours ago'
+    # If they don't have one, return empty value
+    else:
+        return ''
+
+def get_last_seen(patient, smart) -> Tuple[str, str]:
+    """
+    Returns details about the last time a patient was checked on.
+
+    :param pat.Patient patient: The patient being searched for.
+    :param client.FHIRClient smart: SMART client.
+    :return: How long ago the patient was seen (e.g. 2 minutes) and by which type of practitioner.
+    """
+    # Search the observations for the patient's most recent one
+    # FIXME: This might cause false values to appear if providers don't encode an obs each time they check on a patient
+    search = obs.Observation.where(struct={'subject': f'Patient/{patient.id}',
+                                           '_sort': '-date',                # Sort the observations newest-oldest
+                                           '_count': '1'})                  # Look at only the most recent observation
+    results: List[obs.Observation] = search.perform_resources(smart.server)
+
+    # If they have one...
+    if len(results) > 0:
+        # Get the time the observation was last updated
+        start = datetime.strptime(results[0].meta.lastUpdated.isostring, '%Y-%m-%dT%H:%M:%S%z')
+        now = utc.localize(datetime.utcnow())
+        difference = int((now - start).total_seconds() / 60)  # Get difference in minutes
+        # Get the practitioner who issued the observation
+        
+
+        return f'{difference} minute{"" if difference == 1 else "s"} ago', ''
+    # If they don't have one, return empty values
+    else:
+        return '', ''

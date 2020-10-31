@@ -1,0 +1,42 @@
+/* You can add global styles to this file, and also import other style files */
+@import "../node_modules/ag-grid-community/dist/styles/ag-grid.css";
+@import "../node_modules/ag-grid-community/dist/styles/ag-theme-alpine.css";
+
+.ag-theme-alpine {
+@include ag-theme-alpine((odd-row-background-color: #CFD8DC));
+}
+
+
+.imm-warning {
+  background-color: #f35b5b !important;
+}
+
+.emg-warning {
+  background-color: #fcb241 !important;
+}
+
+
+.urg-warning {
+  background-color: #f8f84f !important;
+}
+
+
+.s-urg-warning {
+  background-color: #48fa59 !important;
+}
+
+
+.no-urg-warning {
+  background-color: #5ea1fd !important;
+}
+
+
+.routercontent {
+  display: flex;
+  margin: auto;
+  flex-direction: column;
+  align-items: center;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

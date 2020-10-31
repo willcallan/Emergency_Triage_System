@@ -202,11 +202,32 @@ def get_last_seen(patient, smart) -> Tuple[str, str]:
         now = utc.localize(datetime.utcnow())
         difference = int((now - start).total_seconds() / 60)  # Get difference in minutes
         # Get the practitioner who issued the observation
-        rolesearch = prole.PractitionerRole.where(struct={'practitioner': observation.performer[0].reference})
-        results = rolesearch.perform(smart.server)
-        roles, specialties = get_main_role_and_specialty(results)
+        role = get_role(observation, smart)
 
-        return f'{difference} minute{"" if difference == 1 else "s"} ago', ''
+        return f'{difference} minute{"" if difference == 1 else "s"} ago', role
     # If they don't have one, return empty values
     else:
         return '', ''
+
+
+def get_role(observation, smart) -> str:
+    """
+    Returns the role of the practitioner who issued an operation.
+
+    :param obs.Observation observation: The observation being measured.
+    :param client.FHIRClient smart: SMART client.
+    :return: Role of the practitioner who issued the observation.
+    """
+    if observation.performer is None:
+        return ''
+
+    search = prole.PractitionerRole.where(struct={'practitioner': observation.performer[0].reference})
+    results: List[prole.PractitionerRole] = search.perform_resources(smart.server)
+    if len(results) > 0:
+        if (
+            results[0].code is not None
+            and results[0].code[0].coding is not None
+            and results[0].code[0].coding[0].display is not None
+        ):
+            return results[0].code[0].coding[0].display
+    return ''

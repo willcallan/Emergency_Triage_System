@@ -7,6 +7,9 @@ from typing import Tuple, List
 from datetime import datetime
 from pytz import utc
 
+from flask_cors import CORS, cross_origin
+from flask import jsonify
+
 from fhirclient import client
 import fhirclient.models.patient as pat
 import fhirclient.models.observation as obs
@@ -57,7 +60,7 @@ def patient_save():
             return f'ERROR updating patient:\n{status}'
     return 'ERROR: Search result for this patient in the server returned null.'
 
-
+@cross_origin()
 @patient_endpoint.route('/patient', methods=['GET'])
 @swag_from('static/patient_search.yml')
 def patient_search():
@@ -102,7 +105,7 @@ def get_patient_data(patient, smart) -> str:
         ret_dict['location'] = random.choice(['Waiting room', 'Room 101', 'Room 113', 'Room 204', 'ICU'])
         ret_dict['status'] = random.choice(['1', '2', '3', '4'])
 
-    return json.dumps(ret_dict, indent=4)
+    return ret_dict
 
 
 def get_age(patient) -> int:
@@ -248,4 +251,4 @@ def default_patients():
         patient = pat.Patient.read(pat_id, smart.server)
         ret_list.append(get_patient_data(patient, smart))
 
-    return ', '.join(ret_list)
+    return jsonify(ret_list)

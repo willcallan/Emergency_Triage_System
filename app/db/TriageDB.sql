@@ -1,96 +1,48 @@
--- Database: TriageDB
-
-
-
--- DROP DATABASE "TriageDB";
-
-
-
-CREATE DATABASE "TriageDB"
-
-    WITH
-
-    OWNER = postgres
-
-    ENCODING = 'UTF8'
-
-    LC_COLLATE = 'English_United States.1252'
-
-    LC_CTYPE = 'English_United States.1252'
-
-    TABLESPACE = pg_default
-
-    CONNECTION LIMIT = -1;
-
-
-
-
-
-CREATE TABLE public."Tbl_TriagePatient"
+CREATE TABLE triage_patient
 
 (
 
-    "TriagePatientId" bigint NOT NULL,
+    triage_patient_id bigint NOT NULL,
 
-    "FHIRPatientId" bigint,
+    fhir_patient_id bigint,
 
-    PRIMARY KEY ("TriagePatientId")
+    PRIMARY KEY (triage_patient_id)
 
 );
 
 
 
-ALTER TABLE public."Tbl_TriagePatient"
+ALTER TABLE triage_patient
 
-    OWNER to postgres;
-
-
+    OWNER to edts;
 
 
 
--- Table: public.Tbl_TriagePatientDetail
+
+
+-- Table: triage_patient_detail
 
 
 
--- DROP TABLE public."Tbl_TriagePatientDetail";
+-- DROP TABLE triage_patient_detail;
 
 
 
-CREATE TABLE public."Tbl_TriagePatientDetail"
+CREATE TABLE triage_patient_detail
 
 (
 
-    "TriagePatientDetailId" bigint NOT NULL,
+    triage_patient_detail_id bigint NOT NULL,
 
-    "TriagePatientId" bigint,
+    triage_patient_id bigint,
 
-    "TriagePractionerId" bigint,
+    triage_practioner_id bigint,
 
-    "FirstEncounterDate" date,
+    first_encounter_date date,
 
-    "DischargeDate" date,
+    discharge_date date,
 
-    "Active" boolean,
-
-    CONSTRAINT "Tbl_TriagePatientDetail_pkey" PRIMARY KEY ("TriagePatientDetailId"),
-
-    CONSTRAINT "TblTriagePatient_TblTriagePatientDetail" FOREIGN KEY ("TriagePatientId")
-
-        REFERENCES public."Tbl_TriagePatient" ("TriagePatientId") MATCH SIMPLE
-
-        ON UPDATE NO ACTION
-
-        ON DELETE NO ACTION,
-
-    CONSTRAINT "Tbl_TriagePatientDetail_TriagePractionerId_fkey" FOREIGN KEY ("TriagePractionerId")
-
-        REFERENCES public."Tbl_TriageProfessional" ("TriageProfessionalId") MATCH SIMPLE
-
-        ON UPDATE NO ACTION
-
-        ON DELETE NO ACTION
-
-
+    active boolean
 
 )
 
@@ -100,83 +52,73 @@ CREATE TABLE public."Tbl_TriagePatientDetail"
 
 
 
-ALTER TABLE public."Tbl_TriagePatientDetail"
+ALTER TABLE triage_patient_detail
 
-    OWNER to postgres;
+    OWNER to edts;
 
--- Index: ProfessionalId
-
-
-
--- DROP INDEX public."ProfessionalId";
+-- Index: professional_id
 
 
 
-CREATE INDEX "ProfessionalId"
+-- DROP INDEX professional_id;
 
-    ON public."Tbl_TriagePatientDetail" USING btree
 
-        ("TriagePractionerId" ASC NULLS LAST)
+
+CREATE INDEX professional_id
+
+    ON triage_patient_detail USING btree
+
+        (triage_practioner_id ASC NULLS LAST)
 
     TABLESPACE pg_default;
 
-CREATE TABLE public."Tbl_TriagePatientStatus"
+CREATE TABLE triage_patient_status
 
 (
 
-    "TriagePatientStatusId" bigint NOT NULL,
+    triage_patient_status_id bigint NOT NULL,
 
-    "TriagePatientDetailId" bigint,
+    triage_patient_detail_id bigint,
 
-    "PatientCurrentLocation" text,
+    patient_current_location text,
 
-    "TriageESIStatusId" bigint,
+    triage_esi_status_id bigint,
 
-    PRIMARY KEY ("TriagePatientStatusId"),
-
-    FOREIGN KEY ("TriagePatientDetailId")
-
-        REFERENCES public."Tbl_TriagePatientDetail" ("TriagePatientDetailId") MATCH SIMPLE
-
-        ON UPDATE NO ACTION
-
-        ON DELETE NO ACTION
-
-
+    PRIMARY KEY (triage_patient_status_id)
 
 );
 
 
 
-ALTER TABLE public."Tbl_TriagePatientStatus"
+ALTER TABLE triage_patient_status
 
-    OWNER to postgres;
-
-
-
--- Table: public.Tbl_TriageESIStatus
+    OWNER to edts;
 
 
 
--- DROP TABLE public."Tbl_TriageESIStatus";
+-- Table: triage_esi_status
 
 
 
-CREATE TABLE public."Tbl_TriageESIStatus"
+-- DROP TABLE triage_esi_status;
+
+
+
+CREATE TABLE triage_esi_status
 
 (
 
-    "TriageESIStatusId" bigint NOT NULL,
+    triage_esi_status_id bigint NOT NULL,
 
-    "ESI" integer,
+    esi integer,
 
-    "Code" text COLLATE pg_catalog."default",
+    code text COLLATE pg_catalog.default,
 
-    "Display" text COLLATE pg_catalog."default",
+    display text COLLATE pg_catalog.default,
 
-    "DateCreated" date,
+    date_created date,
 
-    CONSTRAINT "Tbl_TriageESIStatus_pkey" PRIMARY KEY ("TriageESIStatusId")
+    CONSTRAINT triage_esi_status_pkey PRIMARY KEY (triage_esi_status_id)
 
 )
 
@@ -186,33 +128,33 @@ CREATE TABLE public."Tbl_TriageESIStatus"
 
 
 
-ALTER TABLE public."Tbl_TriageESIStatus"
+ALTER TABLE triage_esi_status
 
-    OWNER to postgres;
-
-
-
--- Table: public.Tbl_TriageProfessional
+    OWNER to edts;
 
 
 
--- DROP TABLE public."Tbl_TriageProfessional";
+-- Table: triage_professional
 
 
 
-CREATE TABLE public."Tbl_TriageProfessional"
+-- DROP TABLE triage_professional;
+
+
+
+CREATE TABLE triage_professional
 
 (
 
-    "TriageProfessionalId" bigint NOT NULL,
+    triage_professional_id bigint NOT NULL,
 
-    "FHIRPractionerId" bigint,
+    fhir_practioner_id bigint,
 
-    "TriageWorkStatusId" bigint,
+    triage_work_status_id bigint,
 
-    "ProfessionalType" text COLLATE pg_catalog."default",
+    professional_type text COLLATE pg_catalog.default,
 
-    CONSTRAINT "Tbl_TriageProfessional_pkey" PRIMARY KEY ("TriageProfessionalId")
+    CONSTRAINT triage_professional_pkey PRIMARY KEY (triage_professional_id)
 
 )
 
@@ -222,29 +164,29 @@ CREATE TABLE public."Tbl_TriageProfessional"
 
 
 
-ALTER TABLE public."Tbl_TriageProfessional"
+ALTER TABLE triage_professional
 
-    OWNER to postgres;
-
-
-
--- Table: public.TriageErrorLog
+    OWNER to edts;
 
 
 
--- DROP TABLE public."TTbl_riageErrorLog";
+-- Table: TriageErrorLog
 
 
 
-CREATE TABLE public."Tbl_TriageErrorLog"
+-- DROP TABLE TTbl_riageErrorLog;
+
+
+
+CREATE TABLE triage_error_log
 
 (
 
-    "TriageLogId" bigint,
+    triage_log_id bigint,
 
-    "ErrorDescription" text COLLATE pg_catalog."default",
+    error_description text COLLATE pg_catalog.default,
 
-    "TimeStampCreated" date
+    time_stamp_created date
 
 )
 
@@ -254,33 +196,33 @@ CREATE TABLE public."Tbl_TriageErrorLog"
 
 
 
-ALTER TABLE public."Tbl_TriageErrorLog"
+ALTER TABLE triage_error_log
 
-    OWNER to postgres;
-
-
-
--- Table: public.Tbl_TriageWorkStatus
+    OWNER to edts;
 
 
 
--- DROP TABLE public."Tbl_TriageWorkStatus";
+-- Table: triage_work_status
 
 
 
-CREATE TABLE public."Tbl_TriageWorkStatus"
+-- DROP TABLE triage_work_status;
+
+
+
+CREATE TABLE triage_work_status
 
 (
 
-    "TriageWorkStatusId" bigint NOT NULL,
+    triage_work_status_id bigint NOT NULL,
 
-    "LongDescription" text COLLATE pg_catalog."default",
+    long_description text COLLATE pg_catalog.default,
 
-    "ShortDescription" text COLLATE pg_catalog."default",
+    short_description text COLLATE pg_catalog.default,
 
-    "DateCreated" date,
+    date_created date,
 
-    CONSTRAINT "TriageWorkStatus_pkey" PRIMARY KEY ("TriageWorkStatusId")
+    CONSTRAINT triage_work_status_pkey PRIMARY KEY (triage_work_status_id)
 
 )
 
@@ -290,6 +232,6 @@ CREATE TABLE public."Tbl_TriageWorkStatus"
 
 
 
-ALTER TABLE public."Tbl_TriageWorkStatus"
+ALTER TABLE triage_work_status
 
-    OWNER to postgres;
+    OWNER to edts;

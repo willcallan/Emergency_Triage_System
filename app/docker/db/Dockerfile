@@ -1,7 +1,7 @@
 FROM postgres:latest
 ENV POSTGRES_PASSWORD newhat
 ENV POSTGRES_USER edts
-ENV POSTGRES_DB edts
+ENV POSTGRES_DB triagedb
 
 WORKDIR /home/edts
-COPY default.sql /docker-entrypoint-initdb.d
+COPY TriageDB.sql /docker-entrypoint-initdb.d

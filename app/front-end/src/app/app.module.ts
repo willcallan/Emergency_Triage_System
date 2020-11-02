@@ -16,16 +16,21 @@ import {MatNativeDateModule, MatRippleModule} from '@angular/material/core';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatSelectModule} from "@angular/material/select";
 import {MatIconModule} from '@angular/material/icon';
+import { PatientDetailsComponent } from './patient-details/patient-details.component';
+import { BtnCellRenderer } from './btn-cell-renderer.component';
+
 @NgModule({
   declarations: [
     AppComponent,
     PatientListComponent,
     StaffListComponent,
-    AddPatientComponent
+    AddPatientComponent,
+    PatientDetailsComponent,
+    BtnCellRenderer
   ],
   imports: [
     BrowserModule,
-    AgGridModule.withComponents([]),
+    AgGridModule.withComponents([BtnCellRenderer]),
     MatButtonModule,
     BrowserAnimationsModule,
     AppRoutingModule,

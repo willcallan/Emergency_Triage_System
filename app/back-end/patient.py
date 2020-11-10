@@ -2,7 +2,6 @@ import random
 
 from flask import Blueprint, request
 from flasgger.utils import swag_from
-import json
 from typing import Tuple, List
 from datetime import datetime
 from pytz import utc
@@ -24,6 +23,9 @@ from vars import settings, esi_lookup
 patient_endpoint = Blueprint('patient_endpoint', __name__)
 
 
+# region URL Functions
+
+# TODO: connect this up to the db, and ask Vaneet what type of data he wants to save
 @patient_endpoint.route('/patient/save', methods=['POST'])
 @swag_from('static/patient_save.yml')
 def patient_save():
@@ -33,6 +35,7 @@ def patient_save():
     patient = pat.Patient(jsondict=data_json)
 
     # If the patient has no ID (i.e. entered locally), insert them into the server
+    # Return the ID of the patient, or an error message
     if patient.id is None:
         status = patient.create(smart.server)
         if (
@@ -40,9 +43,9 @@ def patient_save():
             and 'resourceType' in status
             and status['resourceType'] == 'Patient'
         ):
-            return f'Patient created: {status["id"]}'
+            return jsonify(status['id']), 200
         else:
-            return f'ERROR creating patient:\n{status}'
+            return jsonify(status)
 
     # See if the patient is in the FHIR server;
     # This will throw an error if they have an erroneous ID
@@ -55,10 +58,11 @@ def patient_save():
             and 'resourceType' in status
             and status['resourceType'] == 'Patient'
         ):
-            return f'Patient updated: {status["id"]}'
+            return jsonify(status['id']), 200
         else:
-            return f'ERROR updating patient:\n{status}'
-    return 'ERROR: Search result for this patient in the server returned null.'
+            return jsonify(status)
+    return 'ERROR: Search result for this patient in the server returned null.', 404
+
 
 @cross_origin()
 @patient_endpoint.route('/patient', methods=['GET'])
@@ -67,27 +71,32 @@ def patient_search():
     patient_id = request.args.get('id')
 
     if not patient_id:
-        return default_patients() # ''
+        return jsonify(default_patients())
 
     # Get the patient by their id
     smart = client.FHIRClient(settings=settings)
     patient: pat.Patient = pat.Patient.read(patient_id, smart.server)
 
-    # Create the return dictionary from the data
-    return get_patient_data(patient, smart)
+    # Create the flask return json from the data
+    return jsonify(get_patient_data(patient, smart))
+
+# endregion
 
 
-def get_patient_data(patient, smart) -> str:
+# region Functions
+
+def get_patient_data(patient, smart) -> dict:
     """
-    Returns json dict object for a patient (according to front-end specifications).
+    Returns dict object for a patient (according to front-end specifications).
 
     :param pat.Patient patient: The patient being measured.
     :param client.FHIRClient smart: SMART client.
-    :return: JSON formatted string of the patient's data.
+    :return: Dict of the patient's data.
     """
     ret_dict = {}
     if patient:
         # Patient data
+        ret_dict['id'] = patient.id
         ret_dict['name'] = smart.human_name(patient.name[0])
         ret_dict['age'] = get_age(patient)
         # ESI data
@@ -225,6 +234,8 @@ def get_role(observation, smart) -> str:
             return results[0].code[0].coding[0].display
     return ''
 
+# endregion
+
 
 # ---TEMP CODE---
 def random_esi():
@@ -251,4 +262,4 @@ def default_patients():
         patient = pat.Patient.read(pat_id, smart.server)
         ret_list.append(get_patient_data(patient, smart))
 
-    return jsonify(ret_list)
+    return ret_list

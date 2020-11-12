@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import request
 from fhirclient import client
-import json
+from flask import jsonify
 import fhirclient.models.practitioner as pract
 import fhirclient.models.practitionerrole as prole
 import fhirclient.models.contactpoint as cnt
@@ -11,36 +11,25 @@ import fhirclient.models.humanname as nm
 from vars import settings
 from flasgger.utils import swag_from
 
-staff_endpoint = Blueprint('staff_endpoint',__name__)
+practitioner_endpoint = Blueprint('practitioner_endpoint',__name__)
 
 
-@staff_endpoint.route("/staff", methods=['GET'])
+@practitioner_endpoint.route("/staff", methods=['GET'])
+@practitioner_endpoint.route("/practitioner", methods=['GET'])
 def search_staff():
 
     staff_id = request.args.get("id")
 
-    if not staff_id:
-        return ''
-
     smart = client.FHIRClient(settings=settings)
-    practitioner = pract.Practitioner.read(staff_id,smart.server)
-    roleSearch = prole.PractitionerRole.where(struct={'practitioner': staff_id})
-    results = roleSearch.perform(smart.server)
-    roles, specialties = get_main_role_and_specialty(results)
 
-    ret_dict = {}
+    if not staff_id:
+        return jsonify(default_practitioners(smart))
 
-    if practitioner:
-        ret_dict['professionType'] = roles
-        ret_dict['name'] = smart.human_name(practitioner.name[0])
-        ret_dict['specialty'] = specialties
-        ret_dict['email'] = get_email(practitioner.telecom)
-        ret_dict['contact'] = get_phone(practitioner.telecom)
-
-    return json.dumps(ret_dict,indent=4)
+    return jsonify(get_practitioner_info(staff_id, smart))
 
 
-@staff_endpoint.route("/staff/save", methods=['POST'])
+@practitioner_endpoint.route("/staff/save", methods=['POST'])
+@practitioner_endpoint.route("/practitioner/save", methods=['POST'])
 def save_or_update_staff():
 
     req_data = request.json
@@ -54,7 +43,7 @@ def save_or_update_staff():
         return update_practitioner(req_data,smart)
 
 
-def update_practitioner(req_data,smart):
+def update_practitioner(req_data, smart):
     practitioner = pract.Practitioner.read(req_data['id'], smart.server)
     role_search = prole.PractitionerRole.where(struct={'practitioner': req_data['id']})
     results = role_search.perform(smart.server)
@@ -68,6 +57,8 @@ def update_practitioner(req_data,smart):
     if not practitioner.name:
         practitioner.name = [nm.HumanName()]
 
+    # Kind of messy, we assume if given 3 names that it is title, first, then last. Might be a better way.
+    # The problem is that the .HumanName method is one-way and won't let us save.
     if len(names) == 3:
         if practitioner.name[0].prefix:
             practitioner.name[0].prefix[0] = names[0]
@@ -81,6 +72,7 @@ def update_practitioner(req_data,smart):
 
         practitioner.name[0].family = names[2]
 
+    # If given first and last name then assume no title, maybe a nurse?
     elif len(names) == 2:
         practitioner.name[0].given[0] = names[0]
         practitioner.name[0].family = names[1]
@@ -120,29 +112,20 @@ def update_practitioner(req_data,smart):
     return 'OK'
 
 
-
-def get_email(telecoms):
+def get_telecom_type(telecoms, type):
     if telecoms is not None:
         for tele in telecoms:
-            if tele.system == 'email':
+            if tele.system == type:
                 return tele.value
     return ''
 
 
-def get_phone(telecoms):
-    if telecoms is not None:
-        for tele in telecoms:
-            if tele.system == 'phone':
-                return tele.value
-    return ''
-
-
-def get_main_role_and_specialty(roleSearchResults):
-    if roleSearchResults.total > 0:
+def get_main_role_and_specialty(role_search_results):
+    if role_search_results.total > 0:
         role_set = set([])
         specialty_set = set([])
         try:
-            for role in roleSearchResults.entry:
+            for role in role_search_results.entry:
                 if role.resource.code is not None:
                     for code in role.resource.code:
                         for coding in code.coding:
@@ -155,6 +138,40 @@ def get_main_role_and_specialty(roleSearchResults):
             return ', '.join(role_set), ', '.join(specialty_set)
 
         except:
-            return '',''
-    return '',''
+            return '', ''
+    return '', ''
+
+
+def default_practitioners(smart):
+
+    # TODO: Replace with DB call to get our practitioners
+    default_ids = ['5e57a286-d7c6-4e2d-9834-7fb48bd32b51', 'b0aca4f9-4d6a-41b9-87ed-eeb16ee40172',
+                   '2ee48909-f016-4f03-a7c8-62f525b54269']
+    ret_list = []
+
+    for pract_id in default_ids:
+        ret_list.append(get_practitioner_info(pract_id, smart))
+
+    return ret_list
+
+
+def get_practitioner_info(staff_id, smart):
+
+    practitioner = pract.Practitioner.read(staff_id,smart.server)
+    role_search = prole.PractitionerRole.where(struct={'practitioner': staff_id})
+    results = role_search.perform(smart.server)
+    roles, specialties = get_main_role_and_specialty(results)
+
+    ret_dict = {}
+
+    if practitioner:
+        ret_dict['id'] = staff_id
+        ret_dict['professionType'] = roles
+        ret_dict['name'] = smart.human_name(practitioner.name[0])
+        ret_dict['specialty'] = specialties
+        ret_dict['email'] = get_telecom_type(practitioner.telecom, 'email')
+        ret_dict['contact'] = get_telecom_type(practitioner.telecom, 'phone')
+
+    return ret_dict
+
 

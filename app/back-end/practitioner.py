@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask import request
 from fhirclient import client
 import json
+from flask import jsonify
 import fhirclient.models.practitioner as pract
 import fhirclient.models.practitionerrole as prole
 import fhirclient.models.contactpoint as cnt
@@ -21,24 +22,9 @@ def search_staff():
     staff_id = request.args.get("id")
 
     if not staff_id:
-        return ''
+        return jsonify(default_practitioners())
 
-    smart = client.FHIRClient(settings=settings)
-    practitioner = pract.Practitioner.read(staff_id,smart.server)
-    roleSearch = prole.PractitionerRole.where(struct={'practitioner': staff_id})
-    results = roleSearch.perform(smart.server)
-    roles, specialties = get_main_role_and_specialty(results)
-
-    ret_dict = {}
-
-    if practitioner:
-        ret_dict['professionType'] = roles
-        ret_dict['name'] = smart.human_name(practitioner.name[0])
-        ret_dict['specialty'] = specialties
-        ret_dict['email'] = get_email(practitioner.telecom)
-        ret_dict['contact'] = get_phone(practitioner.telecom)
-
-    return json.dumps(ret_dict,indent=4)
+    return jsonify(get_practitioner_info(staff_id))
 
 
 @practitioner_endpoint.route("/staff/save", methods=['POST'])
@@ -122,7 +108,6 @@ def update_practitioner(req_data,smart):
     return 'OK'
 
 
-
 def get_email(telecoms):
     if telecoms is not None:
         for tele in telecoms:
@@ -159,4 +144,35 @@ def get_main_role_and_specialty(roleSearchResults):
         except:
             return '',''
     return '',''
+
+
+def default_practitioners():
+    default_ids = ['5e57a286-d7c6-4e2d-9834-7fb48bd32b51', 'b0aca4f9-4d6a-41b9-87ed-eeb16ee40172',
+                   '2ee48909-f016-4f03-a7c8-62f525b54269']
+    ret_list = []
+
+    for pract_id in default_ids:
+        ret_list.append(get_practitioner_info(pract_id))
+
+    return ret_list
+
+
+def get_practitioner_info(staff_id):
+    smart = client.FHIRClient(settings=settings)
+    practitioner = pract.Practitioner.read(staff_id,smart.server)
+    role_search = prole.PractitionerRole.where(struct={'practitioner': staff_id})
+    results = role_search.perform(smart.server)
+    roles, specialties = get_main_role_and_specialty(results)
+
+    ret_dict = {}
+
+    if practitioner:
+        ret_dict['professionType'] = roles
+        ret_dict['name'] = smart.human_name(practitioner.name[0])
+        ret_dict['specialty'] = specialties
+        ret_dict['email'] = get_email(practitioner.telecom)
+        ret_dict['contact'] = get_phone(practitioner.telecom)
+
+    return ret_dict
+
 

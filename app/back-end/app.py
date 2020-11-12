@@ -4,7 +4,7 @@ import socket
 from flask_cors import CORS, cross_origin
 # Import routes
 from hello import hello_world
-from staff import staff_endpoint
+from practitioner import practitioner_endpoint
 from patient import patient_endpoint
 
 app = Flask(__name__)
@@ -13,7 +13,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 # Route registration
 app.register_blueprint(hello_world)
 app.register_blueprint(patient_endpoint)
-app.register_blueprint(staff_endpoint)
+app.register_blueprint(practitioner_endpoint)
 
 hostname = socket.gethostname()
 IPAddr = socket.gethostbyname(hostname)

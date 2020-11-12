@@ -11,10 +11,11 @@ import fhirclient.models.humanname as nm
 from vars import settings
 from flasgger.utils import swag_from
 
-staff_endpoint = Blueprint('staff_endpoint',__name__)
+practitioner_endpoint = Blueprint('practitioner_endpoint',__name__)
 
 
-@staff_endpoint.route("/staff", methods=['GET'])
+@practitioner_endpoint.route("/staff", methods=['GET'])
+@practitioner_endpoint.route("/practitioner", methods=['GET'])
 def search_staff():
 
     staff_id = request.args.get("id")
@@ -40,7 +41,8 @@ def search_staff():
     return json.dumps(ret_dict,indent=4)
 
 
-@staff_endpoint.route("/staff/save", methods=['POST'])
+@practitioner_endpoint.route("/staff/save", methods=['POST'])
+@practitioner_endpoint.route("/practitioner/save", methods=['POST'])
 def save_or_update_staff():
 
     req_data = request.json

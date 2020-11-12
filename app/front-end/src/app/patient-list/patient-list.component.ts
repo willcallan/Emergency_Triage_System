@@ -1,4 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import axios from 'axios';
+
+import { Router } from '@angular/router';
+
+import { BtnCellRenderer } from "../btn-cell-renderer.component";
 
 @Component({
   selector: 'app-patient-list',
@@ -7,8 +12,13 @@ import { Component, OnInit } from '@angular/core';
 })
 export class PatientListComponent implements OnInit {
 
-  constructor() {
-  }
+  constructor(private router: Router) {  }
+
+  baseUrl = 'http://172.20.160.1:5000/';
+  config = {
+    headers: {'Access-Control-Allow-Origin': '*'}
+  };
+
 
   defaultColDef = {
     width: 150,
@@ -28,10 +38,28 @@ export class PatientListComponent implements OnInit {
     {field: 'status'},
     {field: 'checkedin', headerName: 'Checked-in'},
     {field: 'lastseen', headerName: 'Last Seen'},
-    {field: 'seenby', headerName: 'Seen By'}
+    {field: 'seenby', headerName: 'Seen By'},
+    {
+      headerName: 'Details',
+      cellRenderer: 'btnCellRenderer',
+      cellRendererParams: {
+        clicked: this.patientDetails.bind(this),
+        label: 'Details',
+        btnClass: 'btn btn-primary btn-sm'
+      }
+    }
   ];
+
+  frameworkComponents = {
+    btnCellRenderer: BtnCellRenderer
+  };
   private gridApi;
   private gridColumnApi;
+
+  patientDetails(patient){
+    console.log(patient);
+    this.router.navigate(['/patient/'+patient.age]);
+  }
 
   onGridReady(params) {
     this.gridApi = params.api;
@@ -47,7 +75,8 @@ export class PatientListComponent implements OnInit {
     this.gridApi.setDomLayout('autoHeight');
   }
 
-  rowData = [
+  rowData = [];
+  /*rowData = [
     {
       name: 'Giacomo Guilizzoni',
       age: '30',
@@ -181,18 +210,21 @@ export class PatientListComponent implements OnInit {
       seenby: 'Doctor'
     }
 
-  ];
+  ];*/
 
   rowClassRules = {
-    'imm-warning': 'data.code == "imm"',
-    'emg-warning': 'data.code == "emg"',
-    'urg-warning': 'data.code == "urg"',
-    's-urg-warning': 'data.code == "s-urg"',
-    'no-urg-warning': 'data.code == "no-urg"',
+    'imm-warning': 'data.code == "ESI-1"',
+    'emg-warning': 'data.code == "ESI-2"',
+    'urg-warning': 'data.code == "ESI-3"',
+    's-urg-warning': 'data.code == "ESI-4"',
+    'no-urg-warning': 'data.code == "ESI-5"',
   };
 
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    let patientsUrl = this.baseUrl + 'patient';
+    this.rowData = (await axios.get(patientsUrl, this.config)).data;
+    console.log(this.rowData);
   }
 
 }

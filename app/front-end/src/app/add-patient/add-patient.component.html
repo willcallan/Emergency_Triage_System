@@ -1,0 +1,95 @@
+<div class="container" style="display: flex; justify-content: center; align-items: center;">
+  <div>
+    <button mat-raised-button color="primary" *ngIf="!enableSearch" (click)="enableSearchPatient()">Search Patient</button>
+    <span>&nbsp;&nbsp;&nbsp;</span>
+    <button mat-raised-button color="primary" *ngIf="!enableAdd" (click)="enableAddPatient()">Add Patient</button>
+  </div>
+</div>
+
+<br/>
+<br/>
+
+<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableSearch">
+  <mat-form-field>
+    <mat-label>Patient Id</mat-label>
+    <input matInput [(ngModel)]="inputPatient" placeholder="" value="">
+  </mat-form-field>
+
+  <span>&nbsp;&nbsp;&nbsp;</span>
+
+  <button mat-raised-button (click)="searchPatient()">Search</button>
+</div>
+
+<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAdd">
+  <div class="container" style="display: flow!important;">
+
+    <mat-form-field>
+      <mat-label>First Name</mat-label>
+      <input matInput [(ngModel)]="firstname">
+    </mat-form-field>
+
+    <span>&nbsp;&nbsp;&nbsp;</span>
+
+    <mat-form-field>
+      <mat-label>Last Name</mat-label>
+      <input matInput [(ngModel)]="lastname">
+    </mat-form-field>
+
+    <span>&nbsp;&nbsp;&nbsp;</span>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Gender</mat-label>
+      <mat-select [(ngModel)]="gender">
+        <mat-option value="male">Male</mat-option>
+        <mat-option value="female">Female</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <span>&nbsp;&nbsp;&nbsp;</span>
+
+    <mat-form-field color="accent" appearance="fill">
+      <mat-label>Date of Birth</mat-label>
+      <input matInput [matDatepicker]="picker1" [(ngModel)]="dob">
+      <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+      <mat-datepicker #picker1></mat-datepicker>
+    </mat-form-field>
+
+    <br/>
+
+    <mat-form-field>
+      <mat-label>Email</mat-label>
+      <input matInput [(ngModel)]="email">
+    </mat-form-field>
+
+    <span>&nbsp;&nbsp;&nbsp;</span>
+
+    <mat-form-field class="example-full-width">
+      <mat-label>Telephone</mat-label>
+      <span matPrefix>+1 &nbsp;</span>
+      <input type="tel" matInput [(ngModel)]="contactNumber" placeholder="123-456-7890">
+    </mat-form-field>
+
+    <span>&nbsp;&nbsp;&nbsp;</span>
+
+    <mat-form-field>
+      <mat-label>Address</mat-label>
+      <input matInput [(ngModel)]="address">
+    </mat-form-field>
+
+    <span>&nbsp;&nbsp;&nbsp;</span>
+
+    <mat-form-field>
+      <mat-label>Language</mat-label>
+      <input matInput [(ngModel)]="language">
+    </mat-form-field>
+
+  </div>
+</div>
+<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAdd">
+  <button mat-raised-button color="primary" (click)="addPatient()">Add Patient</button>
+</div>
+
+
+<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAddInjury">
+  <button mat-raised-button color="primary" (click)="addInjury()">Add Injury</button>
+</div>

@@ -263,3 +263,14 @@ def default_patients():
         ret_list.append(get_patient_data(patient, smart))
 
     return ret_list
+
+def getalltriagepatients(default_ids):
+
+    ret_list = []
+    smart = client.FHIRClient(settings=settings)
+
+    for pat_id in default_ids:
+        patient = pat.Patient.read(pat_id[1], smart.server)
+        ret_list.append(get_patient_data(patient, smart))
+
+    return ret_list

@@ -4,9 +4,9 @@ DOCKER_NAME=edts-db
 VERSION=1.1
 
 if [ -e back-end ]; then
-  rm -rf default.sql
+  rm -rf TriageDB.sql
 fi
-cp -r ../../db/default.sql .
+cp -r ../../db/TriageDB.sql .
 
 docker stop $DOCKER_NAME
 docker rm $DOCKER_NAME

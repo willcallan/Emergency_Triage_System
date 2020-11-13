@@ -1,4 +1,0 @@
-responses:
-  200:
-    description: A simple hello world response
-    example: Hello World!

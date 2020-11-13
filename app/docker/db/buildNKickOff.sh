@@ -4,7 +4,7 @@ DOCKER_NAME=edts-db
 VERSION=1.1
 
 if [ -e back-end ]; then
-  rm -rf default.sql
+  rm -rf TriageDB.sql
 fi
 cp -r ../../db/TriageDB.sql .
 

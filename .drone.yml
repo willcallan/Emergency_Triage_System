@@ -1,22 +1,21 @@
 kind: pipeline
 name: default
 
+concurrency:
+  limit: 1
+
 steps:
-# Create Docker image and push to HDAP Docker registry
 - name: deploy_application_image
   image: plugins/docker
-  settings:
-    repo: gt-build.hdap.gatech.edu/emergency-department-triage-system
-    context: app
-    dockerfile: app/Dockerfile
-    tags:
-      - latest
-
-volumes:
-- name: dockersock
-  temp: {}
+    settings:
+      repo: gt-build.hdap.gatech.edu/emt-hospital-application
+      context: nginx
+      dockerfile: nginx/Dockerfile
+      tags:
+        - latest
 trigger:
   branch:
-  - deploy
+    - deploy
+    - master
   event:
-  - push
+    - push

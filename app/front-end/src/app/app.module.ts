@@ -18,7 +18,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatIconModule} from '@angular/material/icon';
 import { PatientDetailsComponent } from './patient-details/patient-details.component';
 import { BtnCellRenderer } from './btn-cell-renderer.component';
-
+import { CommonModule } from '@angular/common';
 @NgModule({
   declarations: [
     AppComponent,
@@ -41,7 +41,8 @@ import { BtnCellRenderer } from './btn-cell-renderer.component';
     MatAutocompleteModule,
     MatSelectModule,
     MatIconModule,
-    FormsModule
+    FormsModule,
+    CommonModule
   ],
   providers: [],
   bootstrap: [AppComponent]

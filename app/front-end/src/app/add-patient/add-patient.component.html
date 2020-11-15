@@ -12,11 +12,29 @@
 <div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableSearch">
   <mat-form-field>
     <mat-label>Patient Id</mat-label>
-    <input matInput [(ngModel)]="inputPatient" placeholder="" value="">
+    <input matInput [(ngModel)]="searchPatientId" placeholder="" value="">
   </mat-form-field>
-
   <span>&nbsp;&nbsp;&nbsp;</span>
+  <mat-form-field>
+    <mat-label>Firstname</mat-label>
+    <input matInput [(ngModel)]="searchFirstname" placeholder="" value="">
+  </mat-form-field>
+  <span>&nbsp;&nbsp;&nbsp;</span>
+  <mat-form-field>
+    <mat-label>Lastname</mat-label>
+    <input matInput [(ngModel)]="searchLastname" placeholder="" value="">
+  </mat-form-field>
+  <span>&nbsp;&nbsp;&nbsp;</span>
+  <mat-form-field color="accent" appearance="fill">
+    <mat-label>Date of Birth</mat-label>
+    <input matInput [matDatepicker]="picker1" [(ngModel)]="searchDOB">
+    <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+    <mat-datepicker #picker1></mat-datepicker>
+  </mat-form-field>
+</div>
 
+<br/>
+<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableSearch">
   <button mat-raised-button (click)="searchPatient()">Search</button>
 </div>
 
@@ -42,6 +60,8 @@
       <mat-select [(ngModel)]="gender">
         <mat-option value="male">Male</mat-option>
         <mat-option value="female">Female</mat-option>
+        <mat-option value="other">Other</mat-option>
+        <mat-option value="unknown">Unknown</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -78,9 +98,15 @@
 
     <span>&nbsp;&nbsp;&nbsp;</span>
 
-    <mat-form-field>
+    <mat-form-field appearance="fill">
       <mat-label>Language</mat-label>
-      <input matInput [(ngModel)]="language">
+      <mat-select [(ngModel)]="language">
+        <mat-option value="en">English</mat-option>
+        <mat-option value="es">Spanish</mat-option>
+        <mat-option value="fr">French</mat-option>
+        <mat-option value="it">Italian</mat-option>
+        <mat-option value="zh">Chinese</mat-option>
+      </mat-select>
     </mat-form-field>
 
   </div>
@@ -89,7 +115,25 @@
   <button mat-raised-button color="primary" (click)="addPatient()">Add Patient</button>
 </div>
 
-
-<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAddInjury">
-  <button mat-raised-button color="primary" (click)="addInjury()">Add Injury</button>
+<span>&nbsp;&nbsp;&nbsp;</span>
+<div class="container mt-6" *ngIf="rowData.length > 0">
+  <div class="d-flex justify-content-center bg-secondary mb-3">
+    <ag-grid-angular
+      #patientListGrid
+      id="patientListGrid"
+      style="width: 100%;"
+      class="ag-theme-alpine"
+      [rowData]="rowData"
+      [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef"
+      (gridReady)="onGridReady($event)"
+      [frameworkComponents]="frameworkComponents"
+    >
+    </ag-grid-angular>
+  </div>
 </div>
+
+
+<!--<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAddInjury">
+  <button mat-raised-button color="primary" (click)="addInjury()">Add Injury</button>
+</div>-->

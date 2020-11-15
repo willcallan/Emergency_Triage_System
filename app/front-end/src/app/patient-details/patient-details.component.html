@@ -1,13 +1,91 @@
-
 <div class="container" style="display: flex; justify-content: center; align-items: center;">
-  <div>
-    <h2>Patient Details - {{patientId}}</h2>
+  <div [ngClass]="backgroundColor">
     <br/>
     <h3>
-      Name: {{patient?.name}} &nbsp;&nbsp;&nbsp;
-      Age: {{patient?.age}}&nbsp;&nbsp;&nbsp;
-      Last Seen: {{patient?.lastseen}}&nbsp;&nbsp;&nbsp;
-      Location: {{patient?.location}}&nbsp;&nbsp;&nbsp;
+
+      <span>&nbsp;&nbsp;</span>
+      <strong> Name: </strong>{{patient?.name}} &nbsp;&nbsp;&nbsp;
+      <strong>Age: </strong> {{patient?.age}}&nbsp;&nbsp;&nbsp;
+      <strong>Last Seen: </strong> {{patient?.lastseen}}&nbsp;&nbsp;&nbsp;
+      <strong>Location:</strong> {{patient?.location}}&nbsp;&nbsp;&nbsp;
+      <strong>Status: </strong>{{patient?.status}}&nbsp;&nbsp;&nbsp;
+      <strong>Code: </strong>
+      <mat-form-field *ngIf="patient && patient.code" appearance="fill">
+        <mat-label>Select Code</mat-label>
+        <mat-select [(ngModel)]="patient.code">
+          <mat-option value="ESI-1">ESI-1</mat-option>
+          <mat-option value="ESI-2">ESI-2</mat-option>
+          <mat-option value="ESI-3">ESI-3</mat-option>
+          <mat-option value="ESI-4">ESI-4</mat-option>
+          <mat-option value="ESI-5">ESI-5</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      <button mat-flat-button color="" (click)="update()">Update</button>
+      <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+
     </h3>
+  </div>
+</div>
+<h1>&nbsp;</h1>
+
+<div class="container" style="display: flex; justify-content: center; align-items: center;">
+  <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+  <button mat-flat-button color="primary" (click)="addVisit()">Add Visit</button>
+  <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+  <button mat-flat-button color="primary" (click)="addInjury()">Add Injury</button>
+  <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+</div>
+
+<h1>&nbsp;</h1>
+
+<div class="container" style="display: flex; justify-content: center; align-items: center;">
+  <div class="col-md-6">
+    <div class="card flex-md-row mb-4 box-shadow h-md-250">
+
+      <img src="../../assets/profile.jpg" height="217" width="203"/>
+      <div class="card-body d-flex flex-column align-items-start">
+        <strong class="d-inline-block mb-2 text-info">Personal Information</strong>
+        <h3 class="mb-0">
+          <a class="text-dark" href="#">Patient Id: {{patientId}}</a>
+          <br/>
+          <a class="text-dark" href="#">Name: {{patient?.name}}</a>
+          <br/>
+          <a class="text-dark" href="#">Age: {{patient?.age}}</a>
+        </h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card flex-md-row mb-4 box-shadow h-md-250">
+      <div class="card-body d-flex flex-column align-items-start">
+        <strong class="d-inline-block mb-2 text-info">Emergency Contacts</strong>
+        <h3 class="mb-0">
+          <a class="text-dark" href="#">Name: Abc Xyz</a>
+          <br/>
+          <a class="text-dark" href="#">Relationship: Brother</a>
+        </h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="display: flex; justify-content: center; align-items: center;">
+  <div class="col-md-6">
+    <div class="card flex-md-row mb-4 box-shadow h-md-250">
+      <div class="card-body d-flex flex-column align-items-start">
+        <strong class="d-inline-block mb-2 text-info">History</strong>
+        <p class="card-text mb-auto">History Here</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card flex-md-row mb-4 box-shadow h-md-250">
+      <div class="card-body d-flex flex-column align-items-start">
+        <strong class="d-inline-block mb-2 text-info">Notes</strong>
+        <p class="card-text mb-auto">Notes Here</p>
+      </div>
+    </div>
   </div>
 </div>

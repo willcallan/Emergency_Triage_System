@@ -1,0 +1,23 @@
+
+.imm-warning {
+  background-color: #f35b5b !important;
+}
+
+.emg-warning {
+  background-color: #fcb241 !important;
+}
+
+
+.urg-warning {
+  background-color: #f8f84f !important;
+}
+
+
+.s-urg-warning {
+  background-color: #48fa59 !important;
+}
+
+
+.no-urg-warning {
+  background-color: #5ea1fd !important;
+}

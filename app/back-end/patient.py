@@ -17,6 +17,7 @@ import fhirclient.models.practitionerrole as prole
 from fhirclient.models.humanname import HumanName
 from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.address import Address
+from fhirclient.models.fhirdate import FHIRDate
 
 from vars import settings, esi_lookup
 
@@ -45,7 +46,7 @@ def patient_save():
         and 'resourceType' in status
         and status['resourceType'] == 'Patient'
     ):
-        return jsonify(status['id']), 200
+        return jsonify(status['id'])
     else:
         return jsonify(status)
 
@@ -125,41 +126,47 @@ def populate_patient(data) -> pat.Patient:
     """
     patient = pat.Patient()
     # Fill in their name
-    if data['firstname'] or data['lastname']:
+    if 'firstname' in data or 'lastname' in data:
         name = HumanName()
-        if data['firstname']:
+        if 'firstname' in data and data['firstname']:
             name.given = [data['firstname']]
-        if data['lastname']:
+        if 'lastname' in data and data['lastname']:
             name.family = data['lastname']
         patient.name = [name]
     # Fill in their gender (male | female | other | unknown)
-    if data['gender']:
+    if 'gender' in data:
         patient.gender = data['gender']
     # Fill in their birthdate (YYYY-MM-dd)
-    if data['dob']:
-        patient.birthDate = data['dob']
+    if 'dob' in data:
+        birthdate = FHIRDate(data['dob'])
+        patient.birthDate = birthdate
     # Fill in their contacts
-    if data['email'] or data['contactNumber']:
+    if 'email' in data or 'contactNumber' in data:
         patient.telecom = []
-        if data['email']:
+        if 'email' in data and data['email']:
             email = ContactPoint()
             email.system = 'email'
             email.value = data['email']             # johnsmith@example.com
             patient.telecom.append(email)
-        if data['contactNumber']:
+        if 'contactNumber' in data and data['contactNumber']:
             phone = ContactPoint()
             phone.system = 'phone'
             phone.value = data['contactNumber']     # 123-456-7890
             patient.telecom.append(phone)
     # Fill in their address ([city, state, country])
-    if data['address']:
+    if 'address' in data:
         address = Address()
-        address.city = data['address'][0]
-        address.state = data['address'][1]
-        address.country = data['address'][2]
-        patient.address = address
+        if 'street' in data['address']:
+            address.line = [data['address']['street']]
+        if 'city' in data['address']:
+            address.city = data['address']['city']
+        if 'state' in data['address']:
+            address.state = data['address']['state']
+        if 'country' in data['address']:
+            address.country = data['address']['country']
+        patient.address = [address]
     # Fill in their language (examples at https://www.hl7.org/fhir/valueset-languages.html)
-    if data['language']:
+    if 'language' in data:
         patient.language = data['language']
 
     return patient
@@ -177,11 +184,17 @@ def get_patient_data(patient, smart) -> dict:
     if patient:
         # Patient data
         ret_dict['id'] = patient.id
-        ret_dict['name'] = smart.human_name(patient.name[0])
-        ret_dict['firstname'] = patient.name[0].given[0]
-        ret_dict['lastname'] = patient.name[0].family
-        ret_dict['age'] = get_age(patient)
-        ret_dict['dob'] = patient.birthDate.isostring
+        name, first, last = get_name(patient)       # name
+        ret_dict['name'] = name
+        ret_dict['firstname'] = first
+        ret_dict['lastname'] = last
+        bd, age = get_birthdate_and_age(patient)    # birthdate
+        ret_dict['dob'] = bd
+        ret_dict['age'] = age
+        ret_dict['gender'] = get_gender(patient)
+        ret_dict['maritalstatus'] = get_marital_status(patient)
+        ret_dict['address'] = get_address(patient)
+        ret_dict['language'] = get_language(patient)
         # ESI data
         esi, code, display = random_esi() # get_esi(patient, smart)
         ret_dict['esi'] = esi
@@ -200,17 +213,99 @@ def get_patient_data(patient, smart) -> dict:
     return ret_dict
 
 
-def get_age(patient) -> int:
+def get_name(patient) -> (str, str, str):
+    """
+    Returns a patient's name.
+
+    :param pat.Patient patient: The patient being measured.
+    :returns: The name of the patient: full, first, last.
+    """
+    if patient.name:
+        name = []
+        first = ''
+        last = ''
+        if patient.name[0].given:
+            first = patient.name[0].given[0]
+            name.append(first)
+        if patient.name[0].family:
+            last = patient.name[0].family
+            name.append(last)
+        return ' '.join(name), first, last
+    return '', '', ''
+
+
+def get_birthdate_and_age(patient) -> (str, str):
     """
     Calculate a patient's age.
 
     :param pat.Patient patient: The patient being measured.
-    :returns: The age of the patient in years.
+    :returns: The birthdate and age of the patient in years.
     """
-    birthdate = datetime.strptime(patient.birthDate.isostring, '%Y-%m-%d')
-    today = datetime.today()
-    age = int((today - birthdate).days / 365.2425)
-    return age
+    if patient.birthDate:
+        birthdate = datetime.strptime(patient.birthDate.isostring, '%Y-%m-%d')
+        today = datetime.today()
+        age = int((today - birthdate).days / 365.2425)
+        return patient.birthDate.isostring, str(age)
+    return '', ''
+
+
+def get_gender(patient) -> str:
+    """
+    Returns a patient's gender.
+
+    :param pat.Patient patient: The patient being measured.
+    :returns: The gender of the patient.
+    """
+    if patient.gender:
+        return patient.gender
+    return ''
+
+
+def get_marital_status(patient) -> str:
+    """
+    Returns a patient's marital status.
+
+    :param pat.Patient patient: The patient being measured.
+    :returns: The marital status of the patient.
+    """
+    if patient.maritalStatus:
+        return patient.maritalStatus.coding[0].display
+    return ''
+
+
+def get_address(patient) -> str:
+    """
+    Returns a patient's primary address.
+
+    :param pat.Patient patient: The patient being measured.
+    :returns: The address of the patient.
+    """
+    address_list = []
+    addr = patient.address
+    if addr:
+        if addr[0].line:
+            address_list.append(addr[0].line[0])
+        if addr[0].city:
+            address_list.append(addr[0].city)
+        if addr[0].state:
+            address_list.append(addr[0].state)
+        if addr[0].country:
+            address_list.append(addr[0].country)
+        if address_list:
+            return ', '.join(address_list)
+    return ''
+
+
+def get_language(patient) -> str:
+    """
+    Returns a patient's language.
+
+    :param pat.Patient patient: The patient being measured.
+    :returns: The language of the patient.
+    """
+    if patient.language:
+        return patient.language
+    return ''
 
 
 def get_esi(patient, smart) -> Tuple[str, str, str]:

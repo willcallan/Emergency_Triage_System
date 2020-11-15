@@ -3,7 +3,7 @@
 
 *This is the template for your project plan. The parts in italics are concise explanations of what should go in the corresponding sections and should not appear in the final document.*
 
-**Author**: NewHAT
+**Author**: NewHAT Team 54
 
 ## 1 Introduction
 

@@ -178,7 +178,10 @@ def get_patient_data(patient, smart) -> dict:
         # Patient data
         ret_dict['id'] = patient.id
         ret_dict['name'] = smart.human_name(patient.name[0])
+        ret_dict['firstname'] = patient.name[0].given[0]
+        ret_dict['lastname'] = patient.name[0].family
         ret_dict['age'] = get_age(patient)
+        ret_dict['dob'] = patient.birthDate.isostring
         # ESI data
         esi, code, display = random_esi() # get_esi(patient, smart)
         ret_dict['esi'] = esi

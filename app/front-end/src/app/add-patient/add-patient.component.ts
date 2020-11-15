@@ -138,11 +138,15 @@ export class AddPatientComponent implements OnInit {
       firstname: this.firstname,
       lastname: this.lastname,
       gender: this.gender,
-      dob: this.formatDob(this.dob),
+      dob: '',
       email: this.email,
       contactNumber: this.contactNumber,
       address: this.address,
       language: this.language
+    }
+
+    if(this.dob){
+      patientBody.dob = this.formatDob(this.dob);
     }
 
     console.log(patientBody);
@@ -152,6 +156,8 @@ export class AddPatientComponent implements OnInit {
 
     let addPatient = (await axios.post(patientAddUrl, patientBody)).data;
     console.log(addPatient);
+
+    this.router.navigate(['/patient/'+addPatient]);
     this.enableAddInjury = true;
     this.enableSearch = false;
     this.enableAdd = false;

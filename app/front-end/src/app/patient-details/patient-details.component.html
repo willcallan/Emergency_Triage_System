@@ -1,4 +1,4 @@
-<div class="container" style="display: flex; justify-content: center; align-items: center;">
+<div class="container" >
   <div [ngClass]="backgroundColor">
     <br/>
     <h3>
@@ -50,9 +50,17 @@
         <h3 class="mb-0">
           <a class="text-dark" href="#">Patient Id: {{patientId}}</a>
           <br/>
-          <a class="text-dark" href="#">Name: {{patient?.name}}</a>
+          <a class="text-dark" href="#">Firstname: {{patient?.firstname}}
+          </a><br/>
+          <a class="text-dark" href="#">Lastname: {{patient?.lastname}}</a>
           <br/>
-          <a class="text-dark" href="#">Age: {{patient?.age}}</a>
+          <a class="text-dark" href="#">Birthdate: {{patient?.dob}}</a>
+          <br/>
+          <a class="text-dark" href="#">Marital Status: {{patient?.maritalstatus}}</a>
+          <br/>
+          <a class="text-dark" href="#">Gender: {{patient?.gender}}
+          </a> <br/>
+          <a class="text-dark" href="#">Address: {{patient?.address}}</a>
         </h3>
       </div>
     </div>

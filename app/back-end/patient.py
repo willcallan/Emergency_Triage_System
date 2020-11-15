@@ -14,9 +14,9 @@ import fhirclient.models.patient as pat
 import fhirclient.models.observation as obs
 import fhirclient.models.encounter as enc
 import fhirclient.models.practitionerrole as prole
-from fhirclient.models.contactpoint import ContactPoint
-from fhirclient.models.fhirdate import FHIRDate
 from fhirclient.models.humanname import HumanName
+from fhirclient.models.contactpoint import ContactPoint
+from fhirclient.models.address import Address
 
 from vars import settings, esi_lookup
 
@@ -29,45 +29,34 @@ patient_endpoint = Blueprint('patient_endpoint', __name__)
 @patient_endpoint.route('/patient/save', methods=['POST'])
 @swag_from('static/patient_save.yml')
 def patient_save():
+    """
+    Saves a patient into the FHIR server.
+    """
     # Get the posted patient
     data_json = request.get_json()
     smart = client.FHIRClient(settings=settings)
-    patient = pat.Patient(jsondict=data_json)
+    patient = populate_patient(data_json)
 
     # If the patient has no ID (i.e. entered locally), insert them into the server
     # Return the ID of the patient, or an error message
-    if patient.id is None:
-        status = patient.create(smart.server)
-        if (
-            status is not None
-            and 'resourceType' in status
-            and status['resourceType'] == 'Patient'
-        ):
-            return jsonify(status['id']), 200
-        else:
-            return jsonify(status)
-
-    # See if the patient is in the FHIR server;
-    # This will throw an error if they have an erroneous ID
-    searched_patient = pat.Patient.read(patient.id, smart.server)
-    # If the patient is in the server, update them
-    if searched_patient:
-        status = patient.update(smart.server)
-        if (
-            status is not None
-            and 'resourceType' in status
-            and status['resourceType'] == 'Patient'
-        ):
-            return jsonify(status['id']), 200
-        else:
-            return jsonify(status)
-    return 'ERROR: Search result for this patient in the server returned null.', 404
+    status = patient.create(smart.server)
+    if (
+        status is not None
+        and 'resourceType' in status
+        and status['resourceType'] == 'Patient'
+    ):
+        return jsonify(status['id']), 200
+    else:
+        return jsonify(status)
 
 
 @cross_origin()
 @patient_endpoint.route('/patient', methods=['GET'])
 @swag_from('static/patient_search.yml')
-def patient_search():
+def patient_search_id():
+    """
+    Searches for a patient by ID, returns a dict of the patient triage data.
+    """
     patient_id = request.args.get('id')
 
     if not patient_id:
@@ -80,10 +69,101 @@ def patient_search():
     # Create the flask return json from the data
     return jsonify(get_patient_data(patient, smart))
 
+
+@patient_endpoint.route('/patient/search', methods=['GET'])
+def patient_search_no_id():
+    """
+    Searches for a patient by name and dob, returns a dict of the patient triage data.
+    """
+    patient_first_name = request.args.get('firstname')
+    patient_last_name = request.args.get('lastname')
+    patient_dob = request.args.get('dob')
+
+    # If nothing is passed, do nothing
+    if not patient_first_name and not patient_last_name and not patient_dob:
+        return jsonify([])
+
+    # Specify the search parameters
+    search_params = {}
+    if patient_first_name:
+        search_params['given'] = patient_first_name
+    if patient_last_name:
+        search_params['family'] = patient_last_name
+    if patient_dob:
+        search_params['birthdate'] = patient_dob
+
+    # Search for all patients who match the search parameters
+    smart = client.FHIRClient(settings=settings)
+    search = pat.Patient.where(struct=search_params)
+    patients = search.perform_resources(smart.server)
+
+    ret_list = []
+    for p in patients:
+        ret_list.append(get_patient_data(p, smart))
+
+    return jsonify(ret_list)
+
 # endregion
 
 
 # region Functions
+
+def populate_patient(data) -> pat.Patient:
+    """
+    Returns a Patient resource populated with the input data.
+
+    :param dict data: The input data as a JSON dict:
+            {firstname: '',
+            lastname: '',
+            gender: 'male | female | other | unknown',
+            dob: 'YYYY-MM-dd',
+            email: '',
+            contactNumber:'',
+            address:'',
+            language: 'examples at https://www.hl7.org/fhir/valueset-languages.html'}
+    :return: Patient resource.
+    """
+    patient = pat.Patient()
+    # Fill in their name
+    if data['firstname'] or data['lastname']:
+        name = HumanName()
+        if data['firstname']:
+            name.given = [data['firstname']]
+        if data['lastname']:
+            name.family = data['lastname']
+        patient.name = [name]
+    # Fill in their gender (male | female | other | unknown)
+    if data['gender']:
+        patient.gender = data['gender']
+    # Fill in their birthdate (YYYY-MM-dd)
+    if data['dob']:
+        patient.birthDate = data['dob']
+    # Fill in their contacts
+    if data['email'] or data['contactNumber']:
+        patient.telecom = []
+        if data['email']:
+            email = ContactPoint()
+            email.system = 'email'
+            email.value = data['email']             # johnsmith@example.com
+            patient.telecom.append(email)
+        if data['contactNumber']:
+            phone = ContactPoint()
+            phone.system = 'phone'
+            phone.value = data['contactNumber']     # 123-456-7890
+            patient.telecom.append(phone)
+    # Fill in their address ([city, state, country])
+    if data['address']:
+        address = Address()
+        address.city = data['address'][0]
+        address.state = data['address'][1]
+        address.country = data['address'][2]
+        patient.address = address
+    # Fill in their language (examples at https://www.hl7.org/fhir/valueset-languages.html)
+    if data['language']:
+        patient.language = data['language']
+
+    return patient
+
 
 def get_patient_data(patient, smart) -> dict:
     """
@@ -98,7 +178,10 @@ def get_patient_data(patient, smart) -> dict:
         # Patient data
         ret_dict['id'] = patient.id
         ret_dict['name'] = smart.human_name(patient.name[0])
+        ret_dict['firstname'] = patient.name[0].given[0]
+        ret_dict['lastname'] = patient.name[0].family
         ret_dict['age'] = get_age(patient)
+        ret_dict['dob'] = patient.birthDate.isostring
         # ESI data
         esi, code, display = random_esi() # get_esi(patient, smart)
         ret_dict['esi'] = esi

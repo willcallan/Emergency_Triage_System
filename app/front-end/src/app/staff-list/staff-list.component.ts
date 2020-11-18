@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import axios from 'axios';
 
 @Component({
   selector: 'app-staff-list',
@@ -7,6 +8,11 @@ import { Component, OnInit } from '@angular/core';
 })
 export class StaffListComponent implements OnInit {
 
+
+  baseUrl = 'http://127.0.0.1:5000/';
+  config = {
+    headers: {'Access-Control-Allow-Origin': '*'}
+  };
   constructor() {
   }
 
@@ -41,8 +47,8 @@ export class StaffListComponent implements OnInit {
   setAutoHeight() {
     this.gridApi.setDomLayout('autoHeight');
   }
-
-  rowData = [
+  rowData=[];
+  /*rowData = [
     { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
     { professionType: 'Nurse', name: 'Jack', speciality: 'Internal', email: 'abc@xyz.com', contact: '000.000.0000' },
     { professionType: 'Nurse', name: 'Patel', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
@@ -52,9 +58,13 @@ export class StaffListComponent implements OnInit {
     { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
     { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
     { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' }
-  ]
+  ]*/
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+
+    let staffUrl = this.baseUrl + 'staff';
+    this.rowData = (await axios.get(staffUrl, this.config)).data;
+    console.log(this.rowData);
   }
 
 }

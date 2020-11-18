@@ -13,12 +13,12 @@ concurrency:
 steps:
 - name: deploy_application_image
   image: plugins/docker
-    settings:
-      repo: gt-build.hdap.gatech.edu/Emergency-Department-Triage-System
-      context: nginx
-      dockerfile: nginx/Dockerfile
-      tags:
-        - latest
+  settings:
+    repo: gt-build.hdap.gatech.edu/Emergency-Department-Triage-System
+    context: nginx
+    dockerfile: nginx/Dockerfile
+    tags:
+      - latest
 trigger:
   branch:
     - deploy

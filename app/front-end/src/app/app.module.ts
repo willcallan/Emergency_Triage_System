@@ -19,6 +19,7 @@ import {MatIconModule} from '@angular/material/icon';
 import { PatientDetailsComponent } from './patient-details/patient-details.component';
 import { BtnCellRenderer } from './btn-cell-renderer.component';
 import { CommonModule } from '@angular/common';
+import {APP_BASE_HREF} from '@angular/common';
 @NgModule({
   declarations: [
     AppComponent,
@@ -44,7 +45,7 @@ import { CommonModule } from '@angular/common';
     FormsModule,
     CommonModule
   ],
-  providers: [],
+  providers: [{provide: APP_BASE_HREF, useValue: '/'}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

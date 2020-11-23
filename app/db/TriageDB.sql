@@ -142,10 +142,10 @@ INSERT INTO "tbl_triagepatient" ("fhirpatientid","triagepatientid") values ('689
 INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
  VALUES (1, 'efb5d4ce-dffc-47df-aa6d-05d372fdb407',NULL,'Doctor');
 INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
-VALUES (1, '5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
+VALUES (2, '5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
 
 INSERT INTO "tbl_triagepatientdetail" ("triagepatientdetailid", "triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
-(1,1,1,'2020-10-28','2020-11-01',1);
+(2,2,1,'2020-10-28','2020-11-01','TRUE');
 
 
 

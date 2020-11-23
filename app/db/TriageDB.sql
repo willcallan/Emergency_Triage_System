@@ -1,86 +1,60 @@
-CREATE TABLE "Tbl_TriagePatient"
+CREATE TABLE "tbl_triagepatient"
 
 (
 
-    "TriagePatientId" bigint NOT NULL,
+    "triagepatientid" bigint NOT NULL,
 
-    "FHIRPatientId" text,
+    "fhirpatientid" text,
 
-    PRIMARY KEY ("TriagePatientId")
+    PRIMARY KEY ("triagepatientid")
 
 );
 
-CREATE TABLE "Tbl_TriageProfessional"
+CREATE TABLE "tbl_triageprofessional"
 
 (
 
-    "TriageProfessionalId" bigint NOT NULL,
+    "triageprofessionalid" bigint NOT NULL,
 
-    "FHIRPractionerId" text,
+    "fhirpractionerid" text,
 
-    "TriageWorkStatusId" bigint,
+    "triageworkstatusid" bigint,
 
-    "ProfessionalType" text COLLATE pg_catalog."default",
+    "professionalType" text COLLATE pg_catalog."default",
 
-    CONSTRAINT "Tbl_TriageProfessional_pkey" PRIMARY KEY ("TriageProfessionalId")
+    CONSTRAINT "tbl_triageprofessional_pkey" PRIMARY KEY ("triageprofessionalid")
 
 );
 
-CREATE TABLE "Tbl_TriagePatientDetail"
+CREATE TABLE "tbl_triagepatientdetail"
 
 (
 
-    "TriagePatientDetailId" bigint NOT NULL,
+    "triagepatientdetailid" bigint NOT NULL,
 
-    "TriagePatientId" bigint,
+    "triagepatientid" bigint,
 
-    "TriagePractionerId" bigint,
+    "triagepractionerid" bigint,
 
-    "FirstEncounterDate" date,
+    "firstencounterdate" date,
 
-    "DischargeDate" date,
+    "dischargedate" date,
 
-    "Active" boolean,
+    "active" boolean,
 
-    CONSTRAINT "Tbl_TriagePatientDetail_pkey" PRIMARY KEY ("TriagePatientDetailId"),
+    CONSTRAINT "tbl_triagepatientdetail_pkey" PRIMARY KEY ("triagepatientdetailid"),
 
-    CONSTRAINT "TblTriagePatient_TblTriagePatientDetail" FOREIGN KEY ("TriagePatientId")
+    CONSTRAINT "tbltriagepatient_tbltriagepatientdetail" FOREIGN KEY ("triagepatientid")
 
-        REFERENCES "Tbl_TriagePatient" ("TriagePatientId") MATCH SIMPLE
+        REFERENCES "tbl_triagepatient" ("triagepatientid") MATCH SIMPLE
 
         ON UPDATE NO ACTION
 
         ON DELETE NO ACTION,
 
-    CONSTRAINT "Tbl_TriagePatientDetail_TriagePractionerId_fkey" FOREIGN KEY ("TriagePractionerId")
+    CONSTRAINT "tbl_triagepatientdetail_triagepractionerid_fkey" FOREIGN KEY ("triagepractionerid")
 
-        REFERENCES "Tbl_TriageProfessional" ("TriageProfessionalId") MATCH SIMPLE
-
-        ON UPDATE NO ACTION
-
-        ON DELETE NO ACTION
-
-
-
-);
-
-CREATE TABLE "Tbl_TriagePatientStatus"
-
-(
-
-    "TriagePatientStatusId" bigint NOT NULL,
-
-    "TriagePatientDetailId" bigint,
-
-    "PatientCurrentLocation" text,
-
-    "TriageESIStatusId" bigint,
-
-    PRIMARY KEY ("TriagePatientStatusId"),
-
-    FOREIGN KEY ("TriagePatientDetailId")
-
-        REFERENCES "Tbl_TriagePatientDetail" ("TriagePatientDetailId") MATCH SIMPLE
+        REFERENCES "tbl_triageprofessional" ("triageprofessionalid") MATCH SIMPLE
 
         ON UPDATE NO ACTION
 
@@ -90,61 +64,87 @@ CREATE TABLE "Tbl_TriagePatientStatus"
 
 );
 
-CREATE TABLE "Tbl_TriageESIStatus"
+CREATE TABLE "tbl_triagepatientstatus"
 
 (
 
-    "TriageESIStatusId" bigint NOT NULL,
+    "triagepatientstatusid" bigint NOT NULL,
 
-    "ESI" integer,
+    "triagepatientdetailid" bigint,
 
-    "Code" text COLLATE pg_catalog."default",
+    "patientcurrentlocation" text,
 
-    "Display" text COLLATE pg_catalog."default",
+    "triageesistatusid" bigint,
 
-    "DateCreated" date,
+    PRIMARY KEY ("triagepatientstatusid"),
 
-    CONSTRAINT "Tbl_TriageESIStatus_pkey" PRIMARY KEY ("TriageESIStatusId")
+    FOREIGN KEY ("triagepatientdetailid")
+
+        REFERENCES "tbl_triagepatientdetail" ("triagepatientdetailid") MATCH SIMPLE
+
+        ON UPDATE NO ACTION
+
+        ON DELETE NO ACTION
+
+
 
 );
 
-CREATE TABLE "Tbl_TriageErrorLog"
+CREATE TABLE "tbl_triageesistatus"
 
 (
 
-    "TriageLogId" bigint,
+    "triageesistatusid" bigint NOT NULL,
 
-    "ErrorDescription" text COLLATE pg_catalog."default",
+    "esi" integer,
 
-    "TimeStampCreated" date
+    "code" text COLLATE pg_catalog."default",
+
+    "display" text COLLATE pg_catalog."default",
+
+    "datecreated" date,
+
+    CONSTRAINT "tbl_triageesistatus_pkey" PRIMARY KEY ("triageesistatusid")
 
 );
 
-CREATE TABLE "Tbl_TriageWorkStatus"
+CREATE TABLE "tbl_triageerrorlog"
 
 (
 
-    "TriageWorkStatusId" bigint NOT NULL,
+    "triagelogid" bigint,
 
-    "LongDescription" text COLLATE pg_catalog."default",
+    "errordescription" text COLLATE pg_catalog."default",
 
-    "ShortDescription" text COLLATE pg_catalog."default",
-
-    "DateCreated" date,
-
-    CONSTRAINT "TriageWorkStatus_pkey" PRIMARY KEY ("TriageWorkStatusId")
+    "timestampcreated" date
 
 );
 
-INSERT INTO "Tbl_TriagePatient" ("FHIRPatientId","TriagePatientId") values ('fc200fa2-12c9-4276-ba4a-e0601d424e55',1);
-INSERT INTO "Tbl_TriagePatient" ("FHIRPatientId","TriagePatientId") values ('689892bd-dcbe-41fc-8651-38a1d0893854',2);
+CREATE TABLE "tbl_triageworkstatus"
 
-INSERT INTO "Tbl_TriageProfessional" ("TriageProfessionalId", "FHIRPractionerId", "TriageWorkStatusId", "ProfessionalType")
+(
+
+    "triageworkstatusid" bigint NOT NULL,
+
+    "longdescription" text COLLATE pg_catalog."default",
+
+    "shortdescription" text COLLATE pg_catalog."default",
+
+    "datecreated" date,
+
+    CONSTRAINT "triageworkstatus_pkey" PRIMARY KEY ("triageworkstatusid")
+
+);
+
+INSERT INTO "tbl_triagepatient" ("fhirpatientid","triagepatientid") values ('fc200fa2-12c9-4276-ba4a-e0601d424e55',1);
+INSERT INTO "tbl_triagepatient" ("fhirpatientid","triagepatientid") values ('689892bd-dcbe-41fc-8651-38a1d0893854',2);
+
+INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
  VALUES (1, 'efb5d4ce-dffc-47df-aa6d-05d372fdb407',NULL,'Doctor');
-INSERT INTO "Tbl_TriageProfessional" ("TriageProfessionalId", "FHIRPractionerId", "TriageWorkStatusId", "ProfessionalType")
+INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
 VALUES (1, '5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
 
-INSERT INTO "Tbl_TriagePatientDetail" ("TriagePatientDetailId", "TriagePatientId", "TriagePractionerId", "FirstEncounterDate", "DischargeDate", "Active") VALUES
+INSERT INTO "tbl_triagepatientdetail" ("triagepatientdetailid", "triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
 (1,1,1,'2020-10-28','2020-11-01',1);
 
 

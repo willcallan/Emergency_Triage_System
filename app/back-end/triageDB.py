@@ -85,10 +85,9 @@ def deletePatientByFhirId(idFHIR):
 
         cur = conn.cursor()
 
-        sql = "DELETE FROM public.tbl_triagepatient where fhirpatientid = %s;"
-        cur.execute(sql, (idFHIR,))
-        result = cur.fetchall()
-
+        sql = "DELETE FROM public.tbl_triagepatient where fhirpatientid = %s"
+        cur.execute(sql,(idFHIR,))
+        conn.commit()
         # close the communication with the PostgreSQL
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:

@@ -11,7 +11,7 @@ import random
 from dateutil import parser
 from faker import Faker
 from vars import settings
-from triageDB import addPatients
+from triageDB import addPatients,getallPatientIds,deletePatientByFhirId
 
 class DataGenerator:
 
@@ -22,6 +22,8 @@ class DataGenerator:
         patient_ids = []
 
         smart = client.FHIRClient(settings=settings)
+
+        self.clear_orphan_patients()
 
         for ct in range(count):
 
@@ -87,6 +89,18 @@ class DataGenerator:
                 print(status)
 
         return patient_ids
+
+    def clear_orphan_patients(self):
+        smart = client.FHIRClient(settings=settings)
+        database_patients = getallPatientIds()
+
+        for patient in database_patients:
+            try:
+                patient = pat.Patient.read(patient[0], smart.server)
+            except:
+                deletePatientByFhirId(patient[0])
+
+
 
 gen = DataGenerator()
 

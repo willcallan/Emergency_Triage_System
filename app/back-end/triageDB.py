@@ -21,7 +21,7 @@ def getallPatient():
 
         # connect to the PostgreSQL server
         print('Connecting to the PostgreSQL database...')
-        conn = psycopg2.connect(get_connection_to_db)
+        conn = psycopg2.connect(get_connection_to_db())
 
         # create a cursor
         cur = conn.cursor()
@@ -41,6 +41,63 @@ def getallPatient():
         newResults = getalltriagepatients(result)
 
         return newResults
+
+
+def getallPatientIds():
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        cur.execute("SELECT fhirpatientid FROM public.tbl_triagepatient;")
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
+
+
+def deletePatientByFhirId(idFHIR):
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        sql = "DELETE FROM public.tbl_triagepatient where fhirpatientid = %s;"
+        cur.execute(sql, (idFHIR,))
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
 
 
 def addPatients(idFHIR):

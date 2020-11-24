@@ -8,6 +8,7 @@ from practitioner import practitioner_endpoint
 from patient import patient_endpoint
 
 app = Flask(__name__)
+app.config.from_pyfile('vars.py')
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 # Route registration

@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 app_name = "NewHat_Triage_Program" # TODO: Come up with name?
 
 settings = {

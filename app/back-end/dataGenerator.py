@@ -8,18 +8,18 @@ import fhirclient.models.coding as cde
 import fhirclient.models.contactpoint as point
 import fhirclient.models.fhirdate as dt
 import random
-import datetime
 from dateutil import parser
-
-from fhirclient.models.patient import PatientContact
 from faker import Faker
 from vars import settings
+from triageDB import addPatients
 
 class DataGenerator:
 
     faker = Faker()
 
     def generate_patients(self, count):
+
+        patient_ids = []
 
         smart = client.FHIRClient(settings=settings)
 
@@ -81,9 +81,12 @@ class DataGenerator:
                     and 'resourceType' in status
                     and status['resourceType'] == 'Patient'
             ):
-                print(status['id'], 200)
+                addPatients(status['id'])
+                patient_ids.append(status['id'])
             else:
                 print(status)
+
+        return patient_ids
 
 gen = DataGenerator()
 

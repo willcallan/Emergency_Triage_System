@@ -14,7 +14,7 @@ export class PatientListComponent implements OnInit {
 
   constructor(private router: Router) {  }
 
-  baseUrl = 'http://172.20.160.1:5000/';
+  baseUrl = 'http://127.0.0.1:5000/';
   config = {
     headers: {'Access-Control-Allow-Origin': '*'}
   };
@@ -58,7 +58,7 @@ export class PatientListComponent implements OnInit {
 
   patientDetails(patient){
     console.log(patient);
-    this.router.navigate(['/patient/'+patient.age]);
+    this.router.navigate(['/patient/'+patient.id]);
   }
 
   onGridReady(params) {

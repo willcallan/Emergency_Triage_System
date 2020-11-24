@@ -28,6 +28,8 @@
     "ag-grid-community": "^24.1.0",
     "angular-bootstrap-md": "^10.0.0",
     "axios": "^0.21.0",
+    "bootstrap": "^4.5.3",
+    "jquery": "^3.5.1",
     "ng-uikit-pro-standard": "^1.0.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",

@@ -1,20 +1,12 @@
-<<<<<<< HEAD
-CREATE TABLE triage_patient
-=======
 CREATE TABLE "tbl_triagepatient"
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
 
 (
 
-    triage_patient_id bigint NOT NULL,
+    "triagepatientid" bigint NOT NULL,
 
-<<<<<<< HEAD
-    fhir_patient_id bigint,
-=======
-    "FHIRPatientId" text,
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
+    "fhirpatientid" text,
 
-    PRIMARY KEY (triage_patient_id)
+    PRIMARY KEY ("triagepatientid")
 
 );
 
@@ -22,325 +14,144 @@ CREATE TABLE "tbl_triageprofessional"
 
 (
 
-<<<<<<< HEAD
-ALTER TABLE triage_patient
+    "triageprofessionalid" bigint NOT NULL,
 
-    OWNER to edts;
+    "fhirpractionerid" text,
 
+    "triageworkstatusid" bigint,
 
+    "professionalType" text COLLATE pg_catalog."default",
 
-
-
--- Table: triage_patient_detail
-=======
-    "TriageProfessionalId" bigint NOT NULL,
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
-
-    "FHIRPractionerId" text,
-
-    "TriageWorkStatusId" bigint,
-
-<<<<<<< HEAD
--- DROP TABLE triage_patient_detail;
-=======
-    "ProfessionalType" text COLLATE pg_catalog."default",
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
-
-    CONSTRAINT "tbl_triageprofessional_pkey" PRIMARY KEY ("TriageProfessionalId")
+    CONSTRAINT "tbl_triageprofessional_pkey" PRIMARY KEY ("triageprofessionalid")
 
 );
 
-<<<<<<< HEAD
-CREATE TABLE triage_patient_detail
-=======
 CREATE TABLE "tbl_triagepatientdetail"
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
 
 (
 
-    triage_patient_detail_id bigint NOT NULL,
+    "triagepatientdetailid" bigint NOT NULL,
 
-    triage_patient_id bigint,
+    "triagepatientid" bigint,
 
-    triage_practioner_id bigint,
+    "triagepractionerid" bigint,
 
-<<<<<<< HEAD
-    first_encounter_date date,
-=======
-    "FirstEncounterDate" date,
+    "firstencounterdate" date,
 
-    "DischargeDate" date,
+    "dischargedate" date,
 
-    "Active" boolean,
+    "active" boolean,
 
-    CONSTRAINT "tbl_triagepatientdetail_pkey" PRIMARY KEY ("TriagePatientDetailId"),
+    CONSTRAINT "tbl_triagepatientdetail_pkey" PRIMARY KEY ("triagepatientdetailid"),
 
-    CONSTRAINT "tblTriagePatient_tblTriagePatientDetail" FOREIGN KEY ("TriagePatientId")
+    CONSTRAINT "tbltriagepatient_tbltriagepatientdetail" FOREIGN KEY ("triagepatientid")
 
-        REFERENCES "tbl_triagepatient" ("TriagePatientId") MATCH SIMPLE
+        REFERENCES "tbl_triagepatient" ("triagepatientid") MATCH SIMPLE
 
         ON UPDATE NO ACTION
 
         ON DELETE NO ACTION,
 
-    CONSTRAINT "tbl_triagepatientdetail_TriagePractionerId_fkey" FOREIGN KEY ("TriagePractionerId")
+    CONSTRAINT "tbl_triagepatientdetail_triagepractionerid_fkey" FOREIGN KEY ("triagepractionerid")
 
-        REFERENCES "tbl_triageprofessional" ("TriageProfessionalId") MATCH SIMPLE
+        REFERENCES "tbl_triageprofessional" ("triageprofessionalid") MATCH SIMPLE
 
         ON UPDATE NO ACTION
 
         ON DELETE NO ACTION
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
-
-    discharge_date date,
-
-    active boolean
-
-<<<<<<< HEAD
-)
 
 
 
-    TABLESPACE pg_default;
-
-
-
-ALTER TABLE triage_patient_detail
-
-    OWNER to edts;
-
--- Index: professional_id
-
-
-
--- DROP INDEX professional_id;
-
-
-
-CREATE INDEX professional_id
-
-    ON triage_patient_detail USING btree
-
-        (triage_practioner_id ASC NULLS LAST)
-
-    TABLESPACE pg_default;
-
-CREATE TABLE triage_patient_status
-
-(
-
-    triage_patient_status_id bigint NOT NULL,
-=======
 );
 
 CREATE TABLE "tbl_triagepatientstatus"
 
 (
 
-    "TriagePatientStatusId" bigint NOT NULL,
+    "triagepatientstatusid" bigint NOT NULL,
 
-    "TriagePatientDetailId" bigint,
+    "triagepatientdetailid" bigint,
 
-    "PatientCurrentLocation" text,
+    "patientcurrentlocation" text,
 
-    "TriageESIStatusId" bigint,
+    "triageesistatusid" bigint,
 
-    PRIMARY KEY ("TriagePatientStatusId"),
+    PRIMARY KEY ("triagepatientstatusid"),
 
-    FOREIGN KEY ("TriagePatientDetailId")
+    FOREIGN KEY ("triagepatientdetailid")
 
-        REFERENCES "tbl_triagepatientdetail" ("TriagePatientDetailId") MATCH SIMPLE
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
+        REFERENCES "tbl_triagepatientdetail" ("triagepatientdetailid") MATCH SIMPLE
 
-    triage_patient_detail_id bigint,
+        ON UPDATE NO ACTION
 
-    patient_current_location text,
+        ON DELETE NO ACTION
 
-    triage_esi_status_id bigint,
 
-    PRIMARY KEY (triage_patient_status_id)
 
 );
 
-<<<<<<< HEAD
-
-
-ALTER TABLE triage_patient_status
-
-    OWNER to edts;
-
-
-
--- Table: triage_esi_status
-
-
-
--- DROP TABLE triage_esi_status;
-
-
-
-CREATE TABLE triage_esi_status
-=======
 CREATE TABLE "tbl_triageesistatus"
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
 
 (
 
-    triage_esi_status_id bigint NOT NULL,
+    "triageesistatusid" bigint NOT NULL,
 
-    esi integer,
+    "esi" integer,
 
-    code text COLLATE pg_catalog.default,
+    "code" text COLLATE pg_catalog."default",
 
-    display text COLLATE pg_catalog.default,
+    "display" text COLLATE pg_catalog."default",
 
-    date_created date,
+    "datecreated" date,
 
-<<<<<<< HEAD
-    CONSTRAINT triage_esi_status_pkey PRIMARY KEY (triage_esi_status_id)
-
-)
-
-
-
-    TABLESPACE pg_default;
-
-
-
-ALTER TABLE triage_esi_status
-
-    OWNER to edts;
-
-
-
--- Table: triage_professional
-
-
-
--- DROP TABLE triage_professional;
-
-
-
-CREATE TABLE triage_professional
-
-(
-
-    triage_professional_id bigint NOT NULL,
-
-    fhir_practioner_id bigint,
-
-    triage_work_status_id bigint,
-
-    professional_type text COLLATE pg_catalog.default,
-
-    CONSTRAINT triage_professional_pkey PRIMARY KEY (triage_professional_id)
-
-)
-
-
-
-    TABLESPACE pg_default;
-
-
-
-ALTER TABLE triage_professional
-
-    OWNER to edts;
-
-
-
--- Table: TriageErrorLog
-
-
-
--- DROP TABLE TTbl_riageErrorLog;
-
-=======
-    CONSTRAINT "tbl_triageesistatus_pkey" PRIMARY KEY ("TriageESIStatusId")
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
+    CONSTRAINT "tbl_triageesistatus_pkey" PRIMARY KEY ("triageesistatusid")
 
 );
 
-<<<<<<< HEAD
-CREATE TABLE triage_error_log
-=======
 CREATE TABLE "tbl_triageerrorlog"
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
 
 (
 
-    triage_log_id bigint,
+    "triagelogid" bigint,
 
-    error_description text COLLATE pg_catalog.default,
+    "errordescription" text COLLATE pg_catalog."default",
 
-    time_stamp_created date
+    "timestampcreated" date
 
-<<<<<<< HEAD
-)
-
-
-
-    TABLESPACE pg_default;
-
-
-
-ALTER TABLE triage_error_log
-
-    OWNER to edts;
-
-
-
--- Table: triage_work_status
-
-
-
--- DROP TABLE triage_work_status;
-
-
-
-CREATE TABLE triage_work_status
-=======
 );
 
 CREATE TABLE "tbl_triageworkstatus"
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
 
 (
 
-    triage_work_status_id bigint NOT NULL,
+    "triageworkstatusid" bigint NOT NULL,
 
-    long_description text COLLATE pg_catalog.default,
+    "longdescription" text COLLATE pg_catalog."default",
 
-    short_description text COLLATE pg_catalog.default,
+    "shortdescription" text COLLATE pg_catalog."default",
 
-    date_created date,
+    "datecreated" date,
 
-    CONSTRAINT triage_work_status_pkey PRIMARY KEY (triage_work_status_id)
+    CONSTRAINT "triageworkstatus_pkey" PRIMARY KEY ("triageworkstatusid")
 
 );
 
-INSERT INTO "tbl_triagepatient" ("FHIRPatientId","TriagePatientId") values ('fc200fa2-12c9-4276-ba4a-e0601d424e55',1);
-INSERT INTO "tbl_triagepatient" ("FHIRPatientId","TriagePatientId") values ('689892bd-dcbe-41fc-8651-38a1d0893854',2);
+INSERT INTO "tbl_triagepatient" ("fhirpatientid","triagepatientid") values ('fc200fa2-12c9-4276-ba4a-e0601d424e55',1);
+INSERT INTO "tbl_triagepatient" ("fhirpatientid","triagepatientid") values ('689892bd-dcbe-41fc-8651-38a1d0893854',2);
 
-INSERT INTO "tbl_triageprofessional" ("TriageProfessionalId", "FHIRPractionerId", "TriageWorkStatusId", "ProfessionalType")
+INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
  VALUES (1, 'efb5d4ce-dffc-47df-aa6d-05d372fdb407',NULL,'Doctor');
-INSERT INTO "tbl_triageprofessional" ("TriageProfessionalId", "FHIRPractionerId", "TriageWorkStatusId", "ProfessionalType")
-VALUES (1, '5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
+INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
+VALUES (2, '5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
 
-INSERT INTO "tbl_triagepatientdetail" ("TriagePatientDetailId", "TriagePatientId", "TriagePractionerId", "FirstEncounterDate", "DischargeDate", "Active") VALUES
-(1,1,1,'2020-10-28','2020-11-01',1);
-
-
+INSERT INTO "tbl_triagepatientdetail" ("triagepatientdetailid", "triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
+(2,2,1,'2020-10-28','2020-11-01','TRUE');
 
 
 
 
 
 
-<<<<<<< HEAD
-ALTER TABLE triage_work_status
 
-    OWNER to edts;
-=======
 
->>>>>>> 215aff01f2c28157d5ab208c380f6c6f9a15d772
+

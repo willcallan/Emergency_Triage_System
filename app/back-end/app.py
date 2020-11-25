@@ -8,6 +8,7 @@ import os
 from hello import hello_world
 from practitioner import practitioner_endpoint
 from patient import patient_endpoint
+from observation import observation_endpoint
 
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.register_blueprint(hello_world)
 app.register_blueprint(patient_endpoint)
 app.register_blueprint(practitioner_endpoint)
+app.register_blueprint(observation_endpoint)
 
 hostname = socket.gethostname()
 IPAddr = socket.gethostbyname(hostname)

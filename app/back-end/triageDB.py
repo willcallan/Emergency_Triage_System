@@ -1,13 +1,15 @@
 import psycopg2
+import os
 from patient import getalltriagepatients
 
-connectionToDB = {
-    'host': 'localhost',
-    'port': '32778',
-    'database': 'edts',
-    'user': 'edts',
-    'password': 'newhat'
-}
+
+def get_connection_to_db():
+    return "host={host} port={port} dbname={dbname} user={user} password={password}".format(
+            host=os.environ.get('DB_HOST'),
+            port=os.environ.get('DB_PORT'),
+            dbname=os.environ.get('DB_NAME'),
+            user=os.environ.get('DB_USER'),
+            password=os.environ.get('DB_PASSWORD'))
 
 
 def getallPatient():
@@ -19,7 +21,7 @@ def getallPatient():
 
         # connect to the PostgreSQL server
         print('Connecting to the PostgreSQL database...')
-        conn = psycopg2.connect(connectionToDB)
+        conn = psycopg2.connect(get_connection_to_db())
 
         # create a cursor
         cur = conn.cursor()
@@ -41,6 +43,114 @@ def getallPatient():
         return newResults
 
 
+def getallPatientIds():
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        cur.execute("SELECT fhirpatientid FROM public.tbl_triagepatient;")
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
+
+def getAllPractitionerIds():
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        cur.execute("SELECT fhirpractionerid FROM public.tbl_triageprofessional;")
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
+
+def deletePatientByFhirId(idFHIR):
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        sql = "DELETE FROM public.tbl_triagepatient where fhirpatientid = %s"
+        cur.execute(sql,(idFHIR,))
+        conn.commit()
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
+
+def deletePractitionerbyFhirId(idFHIR):
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        sql = "DELETE FROM public.tbl_triageprofessional where fhirpractionerid = %s"
+        cur.execute(sql,(idFHIR,))
+        conn.commit()
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
+
 def getPatientDetailById(FHIRId):
     conn = None
 
@@ -50,7 +160,7 @@ def getPatientDetailById(FHIRId):
 
         # connect to the PostgreSQL server
         print('Connecting to the PostgreSQL database...')
-        conn = psycopg2.connect(connectionToDB)
+        conn = psycopg2.connect(get_connection_to_db())
 
         # create a cursor
         cur = conn.cursor()
@@ -83,10 +193,10 @@ def addPatients(idFHIR):
     TriagePatientId = 0
     conn = None
     try:
-        conn = psycopg2.connect(connectionToDB)
+        conn = psycopg2.connect(get_connection_to_db())
         # create a cursor
         cur = conn.cursor()
-        sql = """INSERT INTO public."'tbl_triagepatient'"(FHIRPatientId)
+        sql = """INSERT INTO public.tbl_triagepatient (FHIRPatientId)
                      VALUES(%s) RETURNING TriagePatientId;"""
         cur.execute(sql, (idFHIR,))
         TriagePatientId = cur.fetchone()[0]
@@ -106,7 +216,7 @@ def addPatientDetail(triagePatientId, practionerId, firstEncounterDate, discharg
     TriagePatientdetailId = 0
     conn = None
     try:
-        conn = psycopg2.connect(connectionToDB)
+        conn = psycopg2.connect(get_connection_to_db())
         # create a cursor
         cur = conn.cursor()
         sql = """INSERT INTO public."'tbl_triagepatientdetail'"(TriagePatientId,TriagePractionerId, FirstEncounterDate,
@@ -130,7 +240,7 @@ def addPatientStatus(PatientdetailId, patientcurrentlocation, esistatusId):
     TriagePatientstatusId = 0
     conn = None
     try:
-        conn = psycopg2.connect(connectionToDB)
+        conn = psycopg2.connect(get_connection_to_db())
         # create a cursor
         cur = conn.cursor()
         sql = """INSERT INTO public."'tbl_triagepatientstatus'"(TriagePatientDetailId,PatientCurrentLocation, TriageESIStatusId)
@@ -153,11 +263,11 @@ def addPractioner(practionaerFHIRId, workStatusId, professionalType):
     TriagePractionerId = 0
     conn = None
     try:
-        conn = psycopg2.connect(connectionToDB)
+        conn = psycopg2.connect(get_connection_to_db())
         # create a cursor
         cur = conn.cursor()
-        sql = """INSERT INTO public."'tbl_triageprofessional'"(FHIRPractionerId,TriageWorkStatusId, ProfessionalType)
-                         VALUES(%s1,%s2,%s3) RETURNING TriageProffesionalId;"""
+        sql = """INSERT INTO public.tbl_triageprofessional (fhirpractionerid,triageworkstatusid,"professionalType")
+                         VALUES(%s,%s,%s) RETURNING triageprofessionalid;"""
         cur.execute(sql, (practionaerFHIRId, workStatusId, professionalType,))
         TriagePractionerId = cur.fetchone()[0]
         conn.commit()

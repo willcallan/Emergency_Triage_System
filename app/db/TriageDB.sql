@@ -2,7 +2,7 @@ CREATE TABLE "tbl_triagepatient"
 
 (
 
-    "triagepatientid" bigint NOT NULL,
+    "triagepatientid" BIGSERIAL NOT NULL,
 
     "fhirpatientid" text,
 
@@ -14,7 +14,7 @@ CREATE TABLE "tbl_triageprofessional"
 
 (
 
-    "triageprofessionalid" bigint NOT NULL,
+    "triageprofessionalid" BIGSERIAL NOT NULL,
 
     "fhirpractionerid" text,
 
@@ -30,7 +30,7 @@ CREATE TABLE "tbl_triagepatientdetail"
 
 (
 
-    "triagepatientdetailid" bigint NOT NULL,
+    "triagepatientdetailid" BIGSERIAL NOT NULL,
 
     "triagepatientid" bigint,
 
@@ -68,7 +68,7 @@ CREATE TABLE "tbl_triagepatientstatus"
 
 (
 
-    "triagepatientstatusid" bigint NOT NULL,
+    "triagepatientstatusid" BIGSERIAL NOT NULL,
 
     "triagepatientdetailid" bigint,
 
@@ -94,7 +94,7 @@ CREATE TABLE "tbl_triageesistatus"
 
 (
 
-    "triageesistatusid" bigint NOT NULL,
+    "triageesistatusid" BIGSERIAL NOT NULL,
 
     "esi" integer,
 
@@ -112,7 +112,7 @@ CREATE TABLE "tbl_triageerrorlog"
 
 (
 
-    "triagelogid" bigint,
+    "triagelogid" BIGSERIAL,
 
     "errordescription" text COLLATE pg_catalog."default",
 
@@ -124,7 +124,7 @@ CREATE TABLE "tbl_triageworkstatus"
 
 (
 
-    "triageworkstatusid" bigint NOT NULL,
+    "triageworkstatusid" BIGSERIAL NOT NULL,
 
     "longdescription" text COLLATE pg_catalog."default",
 
@@ -136,16 +136,16 @@ CREATE TABLE "tbl_triageworkstatus"
 
 );
 
-INSERT INTO "tbl_triagepatient" ("fhirpatientid","triagepatientid") values ('fc200fa2-12c9-4276-ba4a-e0601d424e55',1);
-INSERT INTO "tbl_triagepatient" ("fhirpatientid","triagepatientid") values ('689892bd-dcbe-41fc-8651-38a1d0893854',2);
+INSERT INTO "tbl_triagepatient" ("fhirpatientid") values ('fc200fa2-12c9-4276-ba4a-e0601d424e55');
+INSERT INTO "tbl_triagepatient" ("fhirpatientid") values ('689892bd-dcbe-41fc-8651-38a1d0893854');
 
-INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
- VALUES (1, 'efb5d4ce-dffc-47df-aa6d-05d372fdb407',NULL,'Doctor');
-INSERT INTO "tbl_triageprofessional" ("triageprofessionalid", "fhirpractionerid", "triageworkstatusid", "professionalType")
-VALUES (2, '5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
+INSERT INTO "tbl_triageprofessional" ("fhirpractionerid", "triageworkstatusid", "professionalType")
+ VALUES ('efb5d4ce-dffc-47df-aa6d-05d372fdb407',NULL,'Doctor');
+INSERT INTO "tbl_triageprofessional" ("fhirpractionerid", "triageworkstatusid", "professionalType")
+VALUES ('5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
 
-INSERT INTO "tbl_triagepatientdetail" ("triagepatientdetailid", "triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
-(2,2,1,'2020-10-28','2020-11-01','TRUE');
+INSERT INTO "tbl_triagepatientdetail" ("triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
+(2,1,'2020-10-28','2020-11-01','TRUE');
 
 
 

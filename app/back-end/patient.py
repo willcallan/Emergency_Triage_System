@@ -205,6 +205,7 @@ def get_patient_data(patient, smart) -> dict:
         ret_dict['checkedin'] = random_checkin() # get_checkin_time(patient, smart)
         # Data from project database
         # TODO: Hook this up to the project database, FHIR doesn't store this data
+       # result= getPatientDetailById(patient.id)
         lastseen, seenby = random_lastseen() # get_last_seen(patient, smart)
         ret_dict['lastseen'] = lastseen
         ret_dict['seenby'] = seenby

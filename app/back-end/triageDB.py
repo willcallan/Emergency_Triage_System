@@ -169,11 +169,13 @@ def getPatientDetailById(FHIRId):
         # execute a statement
         print('PostgreSQL database version:')
         cur.execute(
-            "SELECT * FROM public."'tbl_triagepatientdetail'" as td inner join public."'tbl_triagepatient'" as tp " +
-            +"on td.triagepatientid = tp.triagepatientid" +
-            +"inner join public."'tbl_triagepatientstatus'" as tps" +
-            +"on tps.triagepatientdetailid = td.triagepatientdetailid" +
-            +"where fhirpatientid= "'"' + "%s" + "'", (FHIRId,))
+            "SELECT patientcurrentlocation, triageesistatusid FROM public."'tbl_triagepatientdetail'" as td inner join public."'tbl_triagepatient'" as tp"+
+        +" on td.TriagePatientId = tp.TriagePatientId "+
+        +" inner join public."'tbl_triagepatientstatus'" as tps "+
+        +" on tps.triagepatientdetailid = td.triagepatientdetailid "+
+        +" inner join public."'tbl_triageprofessional'" as tpp "+
+        +" on tpp.triageprofessionalid = td.triagepractionerid "+
+        +" where FHIRPatientId="+"'" + "%s" + "'", (FHIRId,))
         result = cur.fetchall()
 
 

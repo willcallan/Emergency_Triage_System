@@ -70,6 +70,32 @@ def getallPatientIds():
 
     return result
 
+def getAllPractitionerIds():
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        cur.execute("SELECT fhirpractionerid FROM public.tbl_triageprofessional;")
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
 
 def deletePatientByFhirId(idFHIR):
     """ Connect to the PostgreSQL database server """
@@ -98,6 +124,32 @@ def deletePatientByFhirId(idFHIR):
 
     return result
 
+def deletePractitionerbyFhirId(idFHIR):
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    result = []
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        cur = conn.cursor()
+
+        sql = "DELETE FROM public.tbl_triageprofessional where fhirpractionerid = %s"
+        cur.execute(sql,(idFHIR,))
+        conn.commit()
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return result
 
 def addPatients(idFHIR):
     """ Connect to the PostgreSQL database server """
@@ -177,8 +229,8 @@ def addPractioner(practionaerFHIRId, workStatusId, professionalType):
         conn = psycopg2.connect(get_connection_to_db())
         # create a cursor
         cur = conn.cursor()
-        sql = """INSERT INTO public."'tbl_triageprofessional'"(FHIRPractionerId,TriageWorkStatusId, ProfessionalType)
-                         VALUES(%s1,%s2,%s3) RETURNING TriageProffesionalId;"""
+        sql = """INSERT INTO public.tbl_triageprofessional (fhirpractionerid,triageworkstatusid,"professionalType")
+                         VALUES(%s,%s,%s) RETURNING triageprofessionalid;"""
         cur.execute(sql, (practionaerFHIRId, workStatusId, professionalType,))
         TriagePractionerId = cur.fetchone()[0]
         conn.commit()

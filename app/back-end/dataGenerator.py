@@ -15,7 +15,7 @@ import random
 from dateutil import parser
 from faker import Faker
 from vars import settings
-from triageDB import addPatients,getallPatientIds,deletePatientByFhirId
+from triageDB import *
 
 class DataGenerator:
 
@@ -27,7 +27,13 @@ class DataGenerator:
 
         smart = client.FHIRClient(settings=settings)
 
-        self.clear_orphan_patients()
+        patientCount = self.clear_orphan_patients()
+
+        if patientCount > count:
+            return
+        else:
+            count = count - patientCount
+            print("Generating " + str(count) + " Patients")
 
         for ct in range(count):
 
@@ -117,11 +123,16 @@ class DataGenerator:
         smart = client.FHIRClient(settings=settings)
         database_patients = getallPatientIds()
 
+        count = len(database_patients)
+
         for patient in database_patients:
             try:
                 patient = pat.Patient.read(patient[0], smart.server)
             except:
                 deletePatientByFhirId(patient[0])
+                count = count - 1
+
+        return count
 
     def generate_practitioners(self, count):
 
@@ -129,7 +140,13 @@ class DataGenerator:
 
         smart = client.FHIRClient(settings=settings)
 
-        #self.clear_orphan_patients()
+        practitionerCount = self.clear_orphan_practitioners()
+
+        if practitionerCount > count:
+            return
+        else:
+            count = count - practitionerCount
+            print("Generating " + str(count) + " Practitioners")
 
         for ct in range(count):
 
@@ -169,7 +186,7 @@ class DataGenerator:
                     and 'resourceType' in status
                     and status['resourceType'] == 'Practitioner'
             ):
-                addPatients(status['id'])
+                addPractioner(status['id'], None, "Doctor")
                 print(status['id'])
                 practitioner_ids.append(status['id'])
                 gen.generate_practitioner_role(status['id'])
@@ -215,5 +232,21 @@ class DataGenerator:
         else:
             print(status)
 
+    def clear_orphan_practitioners(self):
+        smart = client.FHIRClient(settings=settings)
+        database_practitioners = getAllPractitionerIds()
+
+        count = len(database_practitioners)
+
+        for practitioner in database_practitioners:
+            try:
+                practitioner = pract.Practitioner.read(practitioner[0], smart.server)
+            except:
+                deletePractitionerbyFhirId(practitioner[0])
+                count = count - 1
+
+        return count
+
+
 gen = DataGenerator()
-gen.generate_practitioners(1)
+gen.generate_practitioners(5)

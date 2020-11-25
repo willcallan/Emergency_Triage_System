@@ -25,11 +25,10 @@ app.config['SERVER_NAME']= IPAddr + ":5000"
 
 swagger = Swagger(app)
 
-# We have to check against true given that if any string exists this will run
-if os.environ.get('DB_USER') == True:
+if bool(os.environ.get('GENERATE_DATA')):
     gen = DataGenerator()
-    gen.generate_patients(20)
-    gen.generate_practitioners(5)
+    gen.generate_patients(25)
+    gen.generate_practitioners(10)
 
 if __name__ == "__main__":
     app.run()

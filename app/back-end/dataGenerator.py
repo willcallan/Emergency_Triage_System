@@ -189,7 +189,7 @@ class DataGenerator:
                 addPractioner(status['id'], None, "Doctor")
                 print(status['id'])
                 practitioner_ids.append(status['id'])
-                gen.generate_practitioner_role(status['id'])
+                self.generate_practitioner_role(status['id'])
             else:
                 print(status)
 

@@ -2,10 +2,13 @@ from flask import Flask
 from flasgger import Swagger
 import socket
 from flask_cors import CORS, cross_origin
+from dataGenerator import DataGenerator
+import os
 # Import routes
 from hello import hello_world
 from practitioner import practitioner_endpoint
 from patient import patient_endpoint
+
 
 app = Flask(__name__)
 app.config.from_pyfile('vars.py')
@@ -21,6 +24,12 @@ IPAddr = socket.gethostbyname(hostname)
 app.config['SERVER_NAME']= IPAddr + ":5000"
 
 swagger = Swagger(app)
+
+# We have to check against true given that if any string exists this will run
+if os.environ.get('DB_USER') == True:
+    gen = DataGenerator()
+    gen.generate_patients(20)
+    gen.generate_practitioners(5)
 
 if __name__ == "__main__":
     app.run()

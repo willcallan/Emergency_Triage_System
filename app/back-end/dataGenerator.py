@@ -1,5 +1,4 @@
 from fhirclient import client
-
 import fhirclient.models.patient as pat
 import fhirclient.models.humanname as hn
 import fhirclient.models.address as addr
@@ -16,6 +15,7 @@ from dateutil import parser
 from faker import Faker
 from vars import settings
 from triageDB import *
+
 
 class DataGenerator:
 
@@ -246,7 +246,3 @@ class DataGenerator:
                 count = count - 1
 
         return count
-
-
-gen = DataGenerator()
-gen.generate_practitioners(5)

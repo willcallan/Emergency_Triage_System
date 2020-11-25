@@ -20,6 +20,8 @@ from fhirclient.models.address import Address
 from fhirclient.models.fhirdate import FHIRDate
 
 from vars import settings, esi_lookup
+from TriageDB import getallPatient
+from TriageDB import getPatientDetailById
 
 patient_endpoint = Blueprint('patient_endpoint', __name__)
 
@@ -204,6 +206,7 @@ def get_patient_data(patient, smart) -> dict:
         ret_dict['checkedin'] = random_checkin() # get_checkin_time(patient, smart)
         # Data from project database
         # TODO: Hook this up to the project database, FHIR doesn't store this data
+       # result= getPatientDetailById(patient.id)
         lastseen, seenby = random_lastseen() # get_last_seen(patient, smart)
         ret_dict['lastseen'] = lastseen
         ret_dict['seenby'] = seenby
@@ -430,14 +433,12 @@ def random_lastseen():
 
 
 def default_patients():
-    default_ids = ['fc200fa2-12c9-4276-ba4a-e0601d424e55', '39234650-0229-4aee-975b-c8ee68bab40b',
-                   '86512c6f-caf6-41f4-9503-e4270b37b94f', 'bf3cb50a-d753-4ddc-ad83-839250edcba9',
-                   'a4c45fe9-e586-4de4-b6da-78d72e91a4bb']
+    default_ids= getallPatient();
     ret_list = []
     smart = client.FHIRClient(settings=settings)
 
     for pat_id in default_ids:
-        patient = pat.Patient.read(pat_id, smart.server)
+        patient = pat.Patient.read(pat_id[1], smart.server)
         ret_list.append(get_patient_data(patient, smart))
 
     return ret_list

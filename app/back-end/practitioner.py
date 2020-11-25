@@ -8,6 +8,7 @@ import fhirclient.models.contactpoint as cnt
 import fhirclient.models.humanname as nm
 
 
+
 from vars import settings
 from flasgger.utils import swag_from
 
@@ -17,13 +18,13 @@ practitioner_endpoint = Blueprint('practitioner_endpoint',__name__)
 @practitioner_endpoint.route("/staff", methods=['GET'])
 @practitioner_endpoint.route("/practitioner", methods=['GET'])
 def search_staff():
-
+    from triageDB import getAllPractitioner
     staff_id = request.args.get("id")
 
     smart = client.FHIRClient(settings=settings)
 
     if not staff_id:
-        return jsonify(default_practitioners(smart))
+        return jsonify(getAllPractitioner())
 
     return jsonify(get_practitioner_info(staff_id, smart))
 
@@ -142,22 +143,14 @@ def get_main_role_and_specialty(role_search_results):
     return '', ''
 
 
-def default_practitioners(smart):
-
-    # TODO: Replace with DB call to get our practitioners
-    default_ids = ['5e57a286-d7c6-4e2d-9834-7fb48bd32b51', 'b0aca4f9-4d6a-41b9-87ed-eeb16ee40172',
-                   '2ee48909-f016-4f03-a7c8-62f525b54269']
-    ret_list = []
-
-    for pract_id in default_ids:
-        ret_list.append(get_practitioner_info(pract_id, smart))
-
-    return ret_list
-
-
 def get_practitioner_info(staff_id, smart):
 
-    practitioner = pract.Practitioner.read(staff_id,smart.server)
+    if not isinstance(staff_id, pract.Practitioner):
+        practitioner = pract.Practitioner.read(staff_id,smart.server)
+    else:
+        practitioner = staff_id
+        staff_id = practitioner.id
+
     role_search = prole.PractitionerRole.where(struct={'practitioner': staff_id})
     results = role_search.perform(smart.server)
     roles, specialties = get_main_role_and_specialty(results)
@@ -175,3 +168,13 @@ def get_practitioner_info(staff_id, smart):
     return ret_dict
 
 
+def get_all_triage_practitioners(default_ids):
+
+    ret_list = []
+    smart = client.FHIRClient(settings=settings)
+
+    for pract_id in default_ids:
+        practitioner = pract.Practitioner.read(pract_id[1], smart.server)
+        ret_list.append(get_practitioner_info(practitioner, smart))
+
+    return ret_list

@@ -1,6 +1,7 @@
 import psycopg2
 import os
 from patient import get_all_triage_patients
+from practitioner import get_all_triage_practitioners
 
 
 def get_connection_to_db():
@@ -279,3 +280,34 @@ def addPractioner(practionaerFHIRId, workStatusId, professionalType):
         if conn is not None:
             conn.close()
         return TriagePractionerId
+
+
+def getAllPractitioner():
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        # create a cursor
+        cur = conn.cursor()
+
+        # execute a statement
+        print('PostgreSQL database version:')
+        cur.execute("SELECT * FROM public.tbl_triageprofessional;")
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+        newResults = get_all_triage_practitioners(result)
+
+        return newResults

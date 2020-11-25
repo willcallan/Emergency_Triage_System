@@ -1,6 +1,6 @@
 import psycopg2
 import os
-from patient import getalltriagepatients
+from patient import get_all_triage_patients
 
 
 def get_connection_to_db():
@@ -28,7 +28,7 @@ def getallPatient():
 
         # execute a statement
         print('PostgreSQL database version:')
-        cur.execute("SELECT * FROM public."'tbl_triagepatient'";")
+        cur.execute("SELECT * FROM public.tbl_triagepatient;")
         result = cur.fetchall()
 
         # close the communication with the PostgreSQL
@@ -38,7 +38,7 @@ def getallPatient():
     finally:
         if conn is not None:
             conn.close()
-        newResults = getalltriagepatients(result)
+        newResults = get_all_triage_patients(result)
 
         return newResults
 

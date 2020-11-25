@@ -23,7 +23,7 @@ app.register_blueprint(observation_endpoint)
 
 hostname = socket.gethostname()
 IPAddr = socket.gethostbyname(hostname)
-app.config['SERVER_NAME']= IPAddr + ":5000"
+app.config['SERVER_NAME']= IPAddr + ":500"
 
 swagger = Swagger(app)
 

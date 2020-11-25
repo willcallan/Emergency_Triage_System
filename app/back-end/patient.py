@@ -20,8 +20,6 @@ from fhirclient.models.address import Address
 from fhirclient.models.fhirdate import FHIRDate
 
 from vars import settings, esi_lookup
-from TriageDB import getallPatient
-from TriageDB import getPatientDetailById
 
 patient_endpoint = Blueprint('patient_endpoint', __name__)
 
@@ -60,10 +58,11 @@ def patient_search_id():
     """
     Searches for a patient by ID, returns a dict of the patient triage data.
     """
+    from triageDB import getallPatient
     patient_id = request.args.get('id')
 
     if not patient_id:
-        return jsonify(default_patients())
+        return jsonify(getallPatient())
 
     # Get the patient by their id
     smart = client.FHIRClient(settings=settings)
@@ -244,8 +243,9 @@ def get_birthdate_and_age(patient) -> (str, str):
     :param pat.Patient patient: The patient being measured.
     :returns: The birthdate and age of the patient in years.
     """
+    import dateutil.parser
     if patient.birthDate:
-        birthdate = datetime.strptime(patient.birthDate.isostring, '%Y-%m-%d')
+        birthdate = dateutil.parser.parse(patient.birthDate.isostring)
         today = datetime.today()
         age = int((today - birthdate).days / 365.2425)
         return patient.birthDate.isostring, str(age)
@@ -432,18 +432,7 @@ def random_lastseen():
     return random.choice(['0 minutes ago', '1 minute ago', '2 minutes ago', '3 minutes ago']), random.choice(['Doctor', 'Nurse'])
 
 
-def default_patients():
-    default_ids= getallPatient();
-    ret_list = []
-    smart = client.FHIRClient(settings=settings)
-
-    for pat_id in default_ids:
-        patient = pat.Patient.read(pat_id[1], smart.server)
-        ret_list.append(get_patient_data(patient, smart))
-
-    return ret_list
-
-def getalltriagepatients(default_ids):
+def get_all_triage_patients(default_ids):
 
     ret_list = []
     smart = client.FHIRClient(settings=settings)

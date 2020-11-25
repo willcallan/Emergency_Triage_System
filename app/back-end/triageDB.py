@@ -1,6 +1,7 @@
 import psycopg2
 import os
-from patient import getalltriagepatients
+from patient import get_all_triage_patients
+from practitioner import get_all_triage_practitioners
 
 
 def get_connection_to_db():
@@ -28,7 +29,7 @@ def getallPatient():
 
         # execute a statement
         print('PostgreSQL database version:')
-        cur.execute("SELECT * FROM public."'tbl_triagepatient'";")
+        cur.execute("SELECT * FROM public.tbl_triagepatient;")
         result = cur.fetchall()
 
         # close the communication with the PostgreSQL
@@ -38,7 +39,7 @@ def getallPatient():
     finally:
         if conn is not None:
             conn.close()
-        newResults = getalltriagepatients(result)
+        newResults = get_all_triage_patients(result)
 
         return newResults
 
@@ -168,11 +169,13 @@ def getPatientDetailById(FHIRId):
         # execute a statement
         print('PostgreSQL database version:')
         cur.execute(
-            "SELECT * FROM public."'tbl_triagepatientdetail'" as td inner join public."'tbl_triagepatient'" as tp " +
-            +"on td.triagepatientid = tp.triagepatientid" +
-            +"inner join public."'tbl_triagepatientstatus'" as tps" +
-            +"on tps.triagepatientdetailid = td.triagepatientdetailid" +
-            +"where fhirpatientid= "'"' + "%s" + "'", (FHIRId,))
+            "SELECT patientcurrentlocation, triageesistatusid FROM public."'tbl_triagepatientdetail'" as td inner join public."'tbl_triagepatient'" as tp"+
+        +" on td.TriagePatientId = tp.TriagePatientId "+
+        +" inner join public."'tbl_triagepatientstatus'" as tps "+
+        +" on tps.triagepatientdetailid = td.triagepatientdetailid "+
+        +" inner join public."'tbl_triageprofessional'" as tpp "+
+        +" on tpp.triageprofessionalid = td.triagepractionerid "+
+        +" where FHIRPatientId="+"'" + "%s" + "'", (FHIRId,))
         result = cur.fetchall()
 
 
@@ -211,7 +214,7 @@ def addPatients(idFHIR):
         return TriagePatientId
 
 
-def addPatientDetail(triagePatientId, practionerId, firstEncounterDate, dischargeDate, active):
+def addPatientDetail(triagePatientId, practionerId, firstEncounterDate, lastseendate, dischargeDate, active):
     """ Connect to the PostgreSQL database server """
     TriagePatientdetailId = 0
     conn = None
@@ -219,10 +222,10 @@ def addPatientDetail(triagePatientId, practionerId, firstEncounterDate, discharg
         conn = psycopg2.connect(get_connection_to_db())
         # create a cursor
         cur = conn.cursor()
-        sql = """INSERT INTO public."'tbl_triagepatientdetail'"(TriagePatientId,TriagePractionerId, FirstEncounterDate,
-                                DischargeDate,Active)
-                         VALUES(%s1,%s2,%s3,%s4,%s5) RETURNING TriagePatientDetailId;"""
-        cur.execute(sql, (triagePatientId, practionerId, firstEncounterDate, dischargeDate, active,))
+        sql = """INSERT INTO public.tbl_triagepatientdetail (triagepatientid, triagepractionerid, firstencounterdate, 
+                        lastseendate, dischargedate, active)
+                         VALUES(%s,%s,%s,%s,%s,%s) RETURNING triagepatientdetailid;"""
+        cur.execute(sql, (triagePatientId, practionerId, firstEncounterDate, lastseendate, dischargeDate, active,))
         TriagePatientdetailId = cur.fetchone()[0]
         conn.commit()
         cur.close()
@@ -243,7 +246,7 @@ def addPatientStatus(PatientdetailId, patientcurrentlocation, esistatusId):
         conn = psycopg2.connect(get_connection_to_db())
         # create a cursor
         cur = conn.cursor()
-        sql = """INSERT INTO public."'tbl_triagepatientstatus'"(TriagePatientDetailId,PatientCurrentLocation, TriageESIStatusId)
+        sql = """INSERT INTO public.tbl_triagepatientstatus (TriagePatientDetailId,PatientCurrentLocation, TriageESIStatusId)
                          VALUES(%s1,%s2,%s3) RETURNING TriagePatientStatusId;"""
         cur.execute(sql, (PatientdetailId, patientcurrentlocation, esistatusId,))
         TriagePatientstatusId = cur.fetchone()[0]
@@ -279,3 +282,75 @@ def addPractioner(practionaerFHIRId, workStatusId, professionalType):
         if conn is not None:
             conn.close()
         return TriagePractionerId
+
+
+def getAllPractitioner():
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        # create a cursor
+        cur = conn.cursor()
+
+        # execute a statement
+        print('PostgreSQL database version:')
+        cur.execute("SELECT * FROM public.tbl_triageprofessional;")
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+        newResults = get_all_triage_practitioners(result)
+
+        return newResults
+
+
+def translateFhirIdtoLocalId(fhir_id, fhir_object):
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    import fhirclient.models.practitioner as pract
+    import fhirclient.models.patient as pat
+    result = ""
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        # create a cursor
+        cur = conn.cursor()
+
+        # execute a statement
+        print('PostgreSQL database version:')
+
+        if isinstance(fhir_object, pract.Practitioner):
+            sql = "SELECT triageprofessionalid FROM public.tbl_triageprofessional where fhirpractionerid = %s;"
+
+        if isinstance(fhir_object, pat.Patient):
+            sql = "SELECT triagepatientid FROM public.tbl_triageprofessional where fhirpatientid = %s;"
+
+        cur.execute(sql, (fhir_id,))
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+        return result
+

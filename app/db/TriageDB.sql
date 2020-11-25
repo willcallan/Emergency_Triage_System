@@ -36,9 +36,11 @@ CREATE TABLE "tbl_triagepatientdetail"
 
     "triagepractionerid" bigint,
 
-    "firstencounterdate" date,
+    "firstencounterdate" timestamp,
+	
+	"lastseendate" timestamp,
 
-    "dischargedate" date,
+    "dischargedate" timestamp,
 
     "active" boolean,
 
@@ -102,7 +104,7 @@ CREATE TABLE "tbl_triageesistatus"
 
     "display" text COLLATE pg_catalog."default",
 
-    "datecreated" date,
+    "datecreated" timestamp,
 
     CONSTRAINT "tbl_triageesistatus_pkey" PRIMARY KEY ("triageesistatusid")
 
@@ -116,7 +118,7 @@ CREATE TABLE "tbl_triageerrorlog"
 
     "errordescription" text COLLATE pg_catalog."default",
 
-    "timestampcreated" date
+    "timestampcreated" timestamp
 
 );
 
@@ -130,7 +132,7 @@ CREATE TABLE "tbl_triageworkstatus"
 
     "shortdescription" text COLLATE pg_catalog."default",
 
-    "datecreated" date,
+    "datecreated" timestamp,
 
     CONSTRAINT "triageworkstatus_pkey" PRIMARY KEY ("triageworkstatusid")
 
@@ -145,7 +147,7 @@ INSERT INTO "tbl_triageprofessional" ("fhirpractionerid", "triageworkstatusid", 
 VALUES ('5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
 
 INSERT INTO "tbl_triagepatientdetail" ("triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
-(2,1,'2020-10-28','2020-11-01','TRUE');
+(2,1,'2020-10-28 01:00:00','2020-11-01 01:00:00','TRUE');
 
 
 

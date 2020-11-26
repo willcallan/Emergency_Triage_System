@@ -18,6 +18,7 @@ from fhirclient.models.humanname import HumanName
 from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.address import Address
 from fhirclient.models.fhirdate import FHIRDate
+from fhirclient.models.patient import PatientContact
 
 from vars import settings, esi_lookup
 
@@ -101,7 +102,12 @@ def patient_search_no_id():
 
     ret_list = []
     for p in patients:
-        ret_list.append(get_patient_data(p, smart))
+        data = PatientData()
+        data.patient = get_patient_data(p, smart)
+        data.history = get_patient_history(p, smart)
+
+
+        ret_list.append(data)
 
     return jsonify(ret_list)
 
@@ -213,6 +219,33 @@ def get_patient_data(patient, smart) -> dict:
         ret_dict['status'] = random.choice(['1', '2', '3', '4'])
 
     return ret_dict
+
+
+def get_patient_history(patient, smart):
+    return [{"time": "2020-11-26 12:00:00", "practitioner": "Dr. Drson", "reason": "ache"}]
+
+
+def get_patient_notes(patient, smart):
+    return [{"time": "2020-11-26 12:00:00", "practitioner": "Dr. Drson", "note": "The patient is fine"}]
+
+
+def get_patient_contacts(patient, smart):
+    ret_array = []
+    for contact in patient.contact:
+        test = PatientContact()
+        contact_dict = {}
+        contact_dict['name'] = smart.human_name(test.name)
+        contact_dict['gender'] = test.gender
+        contact_dict['address'] = get_address(test)
+        contact_dict['phone'] = test.telecom[0].value
+        contact_dict['relationship'] = test.relationship.text
+        ret_array.append(contact_dict)
+
+    return ret_array
+
+
+def get_patient_observations(patient,smart) -> dict:
+    return {}
 
 
 def get_name(patient) -> (str, str, str):
@@ -442,3 +475,14 @@ def get_all_triage_patients(default_ids):
         ret_list.append(get_patient_data(patient, smart))
 
     return ret_list
+
+
+class PatientData:
+    patient = {}
+    history = []
+    notes = []
+    emergencyContacts = []
+    observations = []
+
+
+

@@ -17,9 +17,8 @@ app.register_blueprint(practitioner_endpoint)
 
 hostname = socket.gethostname()
 IPAddr = socket.gethostbyname(hostname)
-app.config['SERVER_NAME']= IPAddr + ":5000"
 
 swagger = Swagger(app)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)

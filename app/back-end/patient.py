@@ -14,6 +14,9 @@ import fhirclient.models.patient as pat
 import fhirclient.models.observation as obs
 import fhirclient.models.encounter as enc
 import fhirclient.models.practitionerrole as prole
+import fhirclient.models.fhirreference as ref
+import fhirclient.models.codeableconcept as conc
+import fhirclient.models.coding as cde
 from fhirclient.models.humanname import HumanName
 from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.address import Address
@@ -49,6 +52,7 @@ def patient_save():
         and 'resourceType' in status
         and status['resourceType'] == 'Patient'
     ):
+        create_encounter(status['id'], smart)
         return jsonify(status['id'])
     else:
         return jsonify(status)
@@ -514,4 +518,26 @@ def compile_patient_data(patient,history,notes,emergency_contacts,observations):
     ret_obj['observations'] = observations
 
     return ret_obj
+
+
+def create_encounter(patient_id, smart):
+    encounter = enc.Encounter()
+    encounter.subject = ref.FHIRReference({'reference': 'Patient/' + patient_id})
+
+    concept = conc.CodeableConcept()
+    code = cde.Coding()
+    code.system = "http://snomed.info/sct"
+    code.code = "50849002"
+    code.display = "Emergency room admission (procedure)"
+    concept.coding = [code]
+    encounter.type = [concept]
+
+    code = cde.Coding()
+    code.system = "http://terminology.hl7.org/CodeSystem/v3-ActCode"
+    code.code = "AMB"
+    encounter.class_fhir = code
+    encounter.status = 'arrived'
+
+    status = encounter.create(smart.server)
+    return status['id']
 

@@ -1,3 +1,5 @@
+from typing import List
+
 from flask import Blueprint, request
 from datetime import datetime
 
@@ -6,10 +8,12 @@ from flask import jsonify
 
 from fhirclient import client
 import fhirclient.models.observation as obs
+import fhirclient.models.encounter as enc
 from fhirclient.models.codeableconcept import CodeableConcept
 from fhirclient.models.coding import Coding
 from fhirclient.models.fhirreference import FHIRReference
 from fhirclient.models.fhirdate import FHIRDate
+from fhirclient.models.annotation import Annotation
 
 from vars import settings, body_site_lookup, injury_lookup
 
@@ -18,7 +22,6 @@ observation_endpoint = Blueprint('observation_endpoint', __name__)
 
 # region URL Functions
 
-# TODO: ask Vaneet what type of data he wants to pass and return
 @observation_endpoint.route('/observation/save', methods=['POST'])
 def observation_save():
     """
@@ -27,7 +30,7 @@ def observation_save():
     # Get the posted patient
     data_json = request.get_json()
     smart = client.FHIRClient(settings=settings)
-    observation = populate_observation(data_json)
+    observation = populate_observation(data_json, smart)
 
     # Return the ID of the observation, or an error message
     status = observation.create(smart.server)
@@ -42,7 +45,7 @@ def observation_save():
 
 
 @cross_origin()
-@observation_endpoint.route('/observation', methods=['GET'])
+@observation_endpoint.route('/observations', methods=['GET'])
 def observation_search():
     """
     Searches for all observations by patient ID, returns a list of observation dicts.
@@ -53,38 +56,44 @@ def observation_search():
     if not patient_id:
         return ''
 
+    smart = client.FHIRClient(settings=settings)
+
     # Specify the search parameters
     search_params = {
         'subject': 'Patient/' + patient_id,
-        # TODO: Get the encounter ID from the database using the patient_id
-        # 'encounter': 'get encounter id from db',
+        # 'encounter': get_encounter_id(patient_id, smart)
     }
+    #TODO: The next three lines should be temporary, keep these only until James implements adding an encounter when adding a patient.
+    # Uncomment the above line in search_params when the below code is no longer necessary.
+    enc_id = get_encounter_id(patient_id, smart)
+    if enc_id:
+        search_params['encounter'] = enc_id
 
     # Search for all observations who match the search parameters
-    smart = client.FHIRClient(settings=settings)
     search = obs.Observation.where(struct=search_params)
-    observations = search.perform_resources(smart.server)
+    observations: List[obs.Observation] = search.perform_resources(smart.server)
 
     ret_list = []
     for o in observations:
-        ret_list.append(get_observation_data(o, smart))
+        ret_list.append(get_observation_data(o))
 
-    # TODO: return a jsonified list
-    return 'NEED TO IMPLEMENT'  # UNCOMMENT WHEN CODE IS VALID: jsonify(ret_list)
+    return jsonify(ret_list)
 
 # endregion
 
 
 # region Functions
 
-def populate_observation(data) -> obs.Observation:
+def populate_observation(data, smart) -> obs.Observation:
     """
     Returns an Observation resource populated with the input data.
 
     :param dict data: The input data as a JSON dict:
             {patientID: '',
             bodyPart: '',
-            injury: ''}
+            injury: '',
+            severity: '' OPTIONAL}
+    :param client.FHIRClient smart: The FHIR client.
     :return: Observation resource.
     """
 
@@ -139,8 +148,7 @@ def populate_observation(data) -> obs.Observation:
     # The patient being observed
     observation.subject = FHIRReference({'reference': 'Patient/' + data['patientID']})
     # The encounter that this observation is part of
-    #TODO: We should save the patient's Encounter in the db as well, since it will hold all the triage observations
-    # observation.encounter = FHIRReference({'reference': 'Encounter/ce115934-fe9d-43cf-a2e7-241d16b6d839'})
+    observation.encounter = FHIRReference({'reference': get_encounter_id(data['patientID'], smart)})
 
     # The time that this observation was first made (times should be in ISO format)
     observation.effectiveDateTime = FHIRDate(get_current_time())
@@ -150,12 +158,112 @@ def populate_observation(data) -> obs.Observation:
     observation.bodySite = get_bodysite_concept(data['bodyPart'])
     # The results of the observation (the field used for this changes depending on how the observation was measured)
     observation.valueCodeableConcept = get_wound_value_concept(data['injury'])
+    # The severity of the wound
+    if 'severity' in data:
+        note = Annotation({'time': get_current_time(), 'text': 'Marked severity: ' + data['severity']})
+        observation.note = [note]
 
     return observation
 
 
-# TODO: Implement
-def get_observation_data(observation, smart):
+def get_observation_data(observation) -> dict:
+    """
+    Returns dict object for an observation (according to front-end specifications).
+
+    :param obs.Observation observation: The observation being measured.
+    :return: Dict of the observation's data.
+    """
+
+    # region Nested Functions
+    def get_severity(observation) -> str:
+        """
+        Returns the severity that was coded for this observation.
+
+        :param obs.Observation observation: The observation being measured.
+        :return: The severity (string between 0 and 10).
+        """
+        if observation.note:
+            for annotation in observation.note:
+                if annotation.text[0:-2] == 'Marked severity:':
+                    return annotation.text[-1:]
+        return ''
+    # endregion
+
+    ret_dict = {}
+    if observation:
+        # Observation data
+        ret_dict['id'] = observation.id
+        # Wound data
+        if observation.code.coding[0].code == '72300-7':
+            ret_dict['injury'] = observation.valueCodeableConcept.text
+            ret_dict['bodyPart'] = observation.bodySite.text
+            ret_dict['time'] = observation.effectiveDateTime.isostring
+            ret_dict['severity'] = get_severity(observation)
+
+    return ret_dict
+
+
+def get_encounter_id(patientID, smart) -> str:
+    """
+    Return the reference for the patient's triage Encounter.
+
+    :param str patientID: The patient's FHIR ID.
+    :param client.FHIRClient smart: The FHIR client.
+    :return: Reference of the Encounter (e.g. 'Encounter/12345').
+    """
+    # Get the most recent ER admission encounter (this should be created when a patient is first admitted)
+    search = enc.Encounter.where(struct={'subject': 'Patient/' + patientID,
+                                         'type': '50849002',    # SNOMED code for ER admission
+                                         '_sort': '-date',      # Sort the encounters newest-oldest
+                                         '_count': '1'})        # Look at only the most recent encounter
+    results: List[enc.Encounter] = search.perform_resources(smart.server)
+
+    if len(results) > 0:
+        return 'Encounter/' + results[0].id
     return ''
 
 # endregion
+
+
+# region TEMP CODE
+
+def TEST_create_encounter(smart):
+    from fhirclient.models.encounter import Encounter
+    from fhirclient.models.encounter import EncounterParticipant
+    from fhirclient.models.coding import Coding
+    from fhirclient.models.codeableconcept import CodeableConcept
+    from fhirclient.models.fhirreference import FHIRReference
+    from fhirclient.models.period import Period
+    encounter = Encounter()
+    # Status of the patient, like if they have arrived or been triaged (this will change as time goes on)
+    encounter.status = 'triaged'
+    # Where the encounter takes place, like in the ER or in the field
+    coding = Coding(
+        {'system': 'http://terminology.hl7.org/CodeSystem/v3-ActCode', 'code': 'EMER', 'display': 'emergency'})
+    encounter.class_fhir = coding
+    # The patient being seen
+    encounter.subject = FHIRReference({'reference': 'Patient/326b4675-0bc8-4dbd-b406-a5564c282401'})
+    # The practitioner seeing the patient (this may change as time goes on, and I think should be empty when the patient first arrives)
+    participant = EncounterParticipant()
+    participant.individual = FHIRReference({'reference': 'Practitioner/03dfaa2f-a54b-4acf-bd54-80defef6ed51'})
+    encounter.participant = [participant]
+    # Why the patient came in (I think this should always be for Emergency room admission for this project)
+    concept = CodeableConcept()
+    coding = Coding(
+        {'system': 'http://snomed.info/sct', 'code': '50849002', 'display': 'Emergency room admission (procedure)'})
+    concept.coding = [coding]
+    concept.text = 'Emergency room admission (procedure)'
+    encounter.type = [concept]
+    # When the encounter started and ended (times should be in ISO format)
+    encounter.period = Period({'start': datetime.now().astimezone().isoformat()})
+    # Which hospital the encounter took place in
+    encounter.serviceProvider = FHIRReference({'reference': 'Organization/d5117822-5756-389d-9547-891a372d580f'})
+
+    # Create the encounter on the server and get the ID
+    status = encounter.create(smart.server)
+    if status is not None:
+        return status['id']
+    return 'ERR'
+
+# endregion
+

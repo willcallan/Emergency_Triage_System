@@ -104,10 +104,7 @@ def patient_search_no_id():
 
     ret_list = []
     for p in patients:
-
-
-
-        ret_list.append(data)
+        ret_list.append(get_patient_data(p, smart))
 
     return jsonify(ret_list)
 

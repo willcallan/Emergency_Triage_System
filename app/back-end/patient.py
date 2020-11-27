@@ -14,10 +14,16 @@ import fhirclient.models.patient as pat
 import fhirclient.models.observation as obs
 import fhirclient.models.encounter as enc
 import fhirclient.models.practitionerrole as prole
+import fhirclient.models.fhirreference as ref
+import fhirclient.models.codeableconcept as conc
+import fhirclient.models.coding as cde
 from fhirclient.models.humanname import HumanName
 from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.address import Address
 from fhirclient.models.fhirdate import FHIRDate
+from fhirclient.models.patient import PatientContact
+from dateutil.relativedelta import relativedelta
+import json
 
 from vars import settings, esi_lookup
 
@@ -46,6 +52,7 @@ def patient_save():
         and 'resourceType' in status
         and status['resourceType'] == 'Patient'
     ):
+        create_encounter(status['id'], smart)
         return jsonify(status['id'])
     else:
         return jsonify(status)
@@ -181,38 +188,73 @@ def get_patient_data(patient, smart) -> dict:
     :param client.FHIRClient smart: SMART client.
     :return: Dict of the patient's data.
     """
-    ret_dict = {}
+
+    patient_dict = {}
     if patient:
         # Patient data
-        ret_dict['id'] = patient.id
+        patient_dict['id'] = patient.id
         name, first, last = get_name(patient)       # name
-        ret_dict['name'] = name
-        ret_dict['firstname'] = first
-        ret_dict['lastname'] = last
+        patient_dict['name'] = name
+        patient_dict['firstname'] = first
+        patient_dict['lastname'] = last
         bd, age = get_birthdate_and_age(patient)    # birthdate
-        ret_dict['dob'] = bd
-        ret_dict['age'] = age
-        ret_dict['gender'] = get_gender(patient)
-        ret_dict['maritalstatus'] = get_marital_status(patient)
-        ret_dict['address'] = get_address(patient)
-        ret_dict['language'] = get_language(patient)
+        patient_dict['dob'] = bd
+        patient_dict['age'] = age
+        patient_dict['gender'] = get_gender(patient)
+        patient_dict['maritalstatus'] = get_marital_status(patient)
+        patient_dict['address'] = get_address(patient)
+        patient_dict['language'] = get_language(patient)
         # ESI data
         esi, code, display = random_esi() # get_esi(patient, smart)
-        ret_dict['esi'] = esi
-        ret_dict['code'] = code
-        ret_dict['display'] = display
+        patient_dict['esi'] = esi
+        patient_dict['code'] = code
+        patient_dict['display'] = display
         # ER data
-        ret_dict['checkedin'] = random_checkin() # get_checkin_time(patient, smart)
+        patient_dict['checkedin'] = random_checkin() # get_checkin_time(patient, smart)
         # Data from project database
         # TODO: Hook this up to the project database, FHIR doesn't store this data
        # result= getPatientDetailById(patient.id)
         lastseen, seenby = random_lastseen() # get_last_seen(patient, smart)
-        ret_dict['lastseen'] = lastseen
-        ret_dict['seenby'] = seenby
-        ret_dict['location'] = random.choice(['Waiting room', 'Room 101', 'Room 113', 'Room 204', 'ICU'])
-        ret_dict['status'] = random.choice(['1', '2', '3', '4'])
+        patient_dict['lastseen'] = lastseen
+        patient_dict['seenby'] = seenby
+        patient_dict['location'] = random.choice(['Waiting room', 'Room 101', 'Room 113', 'Room 204', 'ICU'])
+        patient_dict['status'] = random.choice(['1', '2', '3', '4'])
 
-    return ret_dict
+    all_data = compile_patient_data(
+        patient_dict,
+        get_patient_history(patient, smart),
+        get_patient_notes(patient, smart),
+        get_patient_contacts(patient, smart),
+        [])
+
+    return all_data
+
+
+def get_patient_history(patient, smart):
+    return [{"time": "2020-11-26 12:00:00", "practitioner": "Dr. Drson", "reason": "ache"}]
+
+
+def get_patient_notes(patient, smart):
+    return [{"time": "2020-11-26 12:00:00", "practitioner": "Dr. Drson", "note": "The patient is fine"}]
+
+
+def get_patient_contacts(patient, smart):
+    ret_array = []
+    if patient.contact is not None:
+        for contact in patient.contact:
+            contact_dict = {}
+            contact_dict['name'] = smart.human_name(contact.name)
+            contact_dict['gender'] = contact.gender
+            contact_dict['address'] = get_contact_address(contact)
+            contact_dict['phone'] = contact.telecom[0].value
+            contact_dict['relationship'] = contact.relationship[0].text
+            ret_array.append(contact_dict)
+
+    return ret_array
+
+
+def get_patient_observations(patient,smart) -> dict:
+    return {}
 
 
 def get_name(patient) -> (str, str, str):
@@ -247,7 +289,7 @@ def get_birthdate_and_age(patient) -> (str, str):
     if patient.birthDate:
         birthdate = dateutil.parser.parse(patient.birthDate.isostring)
         today = datetime.today()
-        age = int((today - birthdate).days / 365.2425)
+        age = relativedelta(today, birthdate).years
         return patient.birthDate.isostring, str(age)
     return '', ''
 
@@ -294,6 +336,27 @@ def get_address(patient) -> str:
             address_list.append(addr[0].state)
         if addr[0].country:
             address_list.append(addr[0].country)
+        if address_list:
+            return ', '.join(address_list)
+    return ''
+
+
+def get_contact_address(contact) -> str:
+    """
+    Returns a contact's address.
+
+    :param pat.Patient.contact: The patient being measured.
+    :returns: The address of the contact.
+    """
+    address_list = []
+    addr = contact.address
+    if addr:
+        if addr.city:
+            address_list.append(addr.city)
+        if addr.state:
+            address_list.append(addr.state)
+        if addr.country:
+            address_list.append(addr.country)
         if address_list:
             return ', '.join(address_list)
     return ''
@@ -442,3 +505,39 @@ def get_all_triage_patients(default_ids):
         ret_list.append(get_patient_data(patient, smart))
 
     return ret_list
+
+
+def compile_patient_data(patient,history,notes,emergency_contacts,observations):
+
+    ret_obj = {}
+
+    ret_obj['patient'] = patient
+    ret_obj['history'] = history
+    ret_obj['notes'] = notes
+    ret_obj['emergencyContacts'] = emergency_contacts
+    ret_obj['observations'] = observations
+
+    return ret_obj
+
+
+def create_encounter(patient_id, smart):
+    encounter = enc.Encounter()
+    encounter.subject = ref.FHIRReference({'reference': 'Patient/' + patient_id})
+
+    concept = conc.CodeableConcept()
+    code = cde.Coding()
+    code.system = "http://snomed.info/sct"
+    code.code = "50849002"
+    code.display = "Emergency room admission (procedure)"
+    concept.coding = [code]
+    encounter.type = [concept]
+
+    code = cde.Coding()
+    code.system = "http://terminology.hl7.org/CodeSystem/v3-ActCode"
+    code.code = "AMB"
+    encounter.class_fhir = code
+    encounter.status = 'arrived'
+
+    status = encounter.create(smart.server)
+    return status['id']
+

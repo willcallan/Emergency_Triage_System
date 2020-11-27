@@ -20,6 +20,21 @@ esi_lookup = {      # Values from https://loinc.org/75636-1/
 }
 """Dictionary of LOINC codes for ESI rating. Values are the ESI rating, code, and display."""
 
+marital_status_lookup = {
+    'Annulled': ['A', 'Annulled'],
+    'Divorced': ['D', 'Divorced'],
+    'Interlocutory': ['I', 'Interlocutory'],
+    'Legally Separated': ['L', 'Legally Separated'],
+    'Married': ['M', 'Married'],
+    'Polygamous': ['P', 'Polygamous'],
+    'Never Married': ['S', 'Never Married'],
+    'Domestic partner': ['T', 'Domestic partner'],
+    'unmarried': ['U', 'unmarried'],
+    'Widowed': ['W', 'Widowed'],
+    'unknown': ['UNK', 'unknown'],
+}
+"""Dictionary of marital statuses. Values are the HL7 code and display."""
+
 # endregion
 
 # region observation.py

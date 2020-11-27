@@ -21,41 +21,121 @@ from fhirclient.models.humanname import HumanName
 from fhirclient.models.contactpoint import ContactPoint
 from fhirclient.models.address import Address
 from fhirclient.models.fhirdate import FHIRDate
+from fhirclient.models.codeableconcept import CodeableConcept
+from fhirclient.models.coding import Coding
 from fhirclient.models.patient import PatientContact
 from dateutil.relativedelta import relativedelta
 import json
 
-from vars import settings, esi_lookup
+from vars import settings, esi_lookup, marital_status_lookup
 
 patient_endpoint = Blueprint('patient_endpoint', __name__)
 
 
 # region URL Functions
 
-# TODO: connect this up to the db, and ask Vaneet what type of data he wants to save
 @patient_endpoint.route('/patient/save', methods=['POST'])
 @swag_from('static/patient_save.yml')
 def patient_save():
     """
-    Saves a patient into the FHIR server.
+    Creates and saves a patient into the FHIR server.
+    If an ID is provided, updates the patient in the FHIR server instead.
     """
+
+    # region Nested Functions
+    def create_marital_status(term):
+        """
+        Returns a maritalStatus CodeableConcept based on the term passed in.
+
+        :param str term: The human-readable term for the marital status.
+        :returns: The maritalStatus CodeableConcept, or None.
+        """
+        if term == '':
+            return None
+
+        ms = CodeableConcept()
+        ms_data = marital_status_lookup[term]
+        ms.coding = [Coding({'system': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus', 'code': ms_data[0], 'display': ms_data[1]})]
+        ms.text = ms.coding[0].display
+        return ms
+
+    def create_address(addr):
+        """
+        Returns an Address based on the data passed in.
+
+        :param dict addr: A dictionary that can contain: street, city, state, and country.
+        :returns: The FHIR Address.
+        """
+        address = Address()
+        if 'street' in addr:
+            address.line = [addr['street']]
+        if 'city' in addr:
+            address.city = addr['city']
+        if 'state' in addr:
+            address.state = addr['state']
+        if 'country' in addr:
+            address.country = addr['country']
+        return address
+
+    def modify_patient(pt, data) -> pat.Patient:
+        """
+        Updates a patient object with data.
+
+        :param pat.Patient pt: The patient being modified.
+        :param dict data: The new patient data.
+        :returns: The updated version of the patient
+        """
+        if 'firstname' in data:
+            pt.name[0].given[0] = data['firstname']
+        if 'lastname' in data:
+            pt.name[0].family = data['lastname']
+        if 'dob' in data and data['dob'] != pt.birthDate.isostring:
+            pt.birthDate = FHIRDate(data['dob'])
+        if 'gender' in data:
+            pt.gender = data['gender']
+        if 'maritalstatus' in data:
+            if create_marital_status(data['maritalstatus']):
+                pt.maritalStatus = create_marital_status(data['maritalstatus'])
+        # TODO: The following code doesn't work because the address returned by /patient?id='' is a str, not a dict.
+#        if 'address' in data:
+#            new_address = create_address(data['address'])
+#            if not pt.address:
+#                pt.address = [new_address]
+#            else:
+#                pt.address.append(new_address)
+        if 'language' in data:
+            pt.language = data['language']
+
+        return pt
+    # endregion
+
     # Get the posted patient
     data_json = request.get_json()
-    smart = client.FHIRClient(settings=settings)
-    patient = populate_patient(data_json)
 
-    # If the patient has no ID (i.e. entered locally), insert them into the server
-    # Return the ID of the patient, or an error message
-    status = patient.create(smart.server)
-    if (
-        status is not None
-        and 'resourceType' in status
-        and status['resourceType'] == 'Patient'
-    ):
-        create_encounter(status['id'], smart)
-        return jsonify(status['id'])
+    if data_json:
+        smart = client.FHIRClient(settings=settings)
+
+        # If the patient has no ID (i.e. entered locally), insert them into the server
+        if 'id' not in data_json or data_json['id'] == '':
+            patient = populate_patient(data_json)
+            status = patient.create(smart.server)
+        # If the patient does have an ID (i.e. they are in the FHIR server), update them
+        else:
+            patient: pat.Patient = pat.Patient.read(data_json['id'], smart.server)
+            # TODO: modify_patient() only updates the Patient Resource, it does not update the patient data in the db.
+            patient = modify_patient(patient, data_json)
+            status = patient.update(smart.server)
+
+        if (
+                status is not None
+                and 'resourceType' in status
+                and status['resourceType'] == 'Patient'
+        ):
+            return jsonify(status['id'])
+        else:
+            return jsonify(status)
     else:
-        return jsonify(status)
+        return ''
 
 
 @cross_origin()
@@ -210,7 +290,7 @@ def get_patient_data(patient, smart) -> dict:
         patient_dict['code'] = code
         patient_dict['display'] = display
         # ER data
-        patient_dict['checkedin'] = random_checkin() # get_checkin_time(patient, smart)
+        patient_dict['checkedin'] = get_checkin_time(patient, smart)
         # Data from project database
         # TODO: Hook this up to the project database, FHIR doesn't store this data
        # result= getPatientDetailById(patient.id)
@@ -407,7 +487,6 @@ def get_checkin_time(patient, smart) -> str:
     :return: Relative time when the patient checked in (e.g. 9.50 hours ago).
     """
     # Search the encounters for the patient's most recent one
-    # FIXME: This might cause false values to appear if the patient has an ER enc from a different hospital visit
     search = enc.Encounter.where(struct={'subject': f'Patient/{patient.id}',
                                          'type': '50849002',                # SNOMED code for ER admission
                                          '_sort': '-date',                  # Sort the encounters newest-oldest

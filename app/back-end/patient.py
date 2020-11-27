@@ -170,7 +170,15 @@ def patient_search_id():
     patient: pat.Patient = pat.Patient.read(patient_id, smart.server)
 
     # Create the flask return json from the data
-    return jsonify(get_patient_data(patient, smart))
+
+    all_data = compile_patient_data(
+        get_patient_data(patient, smart),
+        get_patient_history(patient, smart),
+        get_patient_notes(patient, smart),
+        get_patient_contacts(patient, smart),
+        [])
+    
+    return jsonify(all_data)
 
 
 @patient_endpoint.route('/patient/search', methods=['GET'])
@@ -314,14 +322,7 @@ def get_patient_data(patient, smart) -> dict:
         patient_dict['location'] = random.choice(['Waiting room', 'Room 101', 'Room 113', 'Room 204', 'ICU'])
         patient_dict['status'] = random.choice(['1', '2', '3', '4'])
 
-    all_data = compile_patient_data(
-        patient_dict,
-        get_patient_history(patient, smart),
-        get_patient_notes(patient, smart),
-        get_patient_contacts(patient, smart),
-        [])
-
-    return all_data
+    return patient_dict
 
 
 def get_patient_history(patient, smart):
@@ -608,7 +609,6 @@ def compile_patient_data(patient,history,notes,emergency_contacts,observations):
     ret_obj['history'] = history
     ret_obj['notes'] = notes
     ret_obj['emergencyContacts'] = emergency_contacts
-    ret_obj['observations'] = observations
 
     return ret_obj
 

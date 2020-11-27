@@ -61,13 +61,8 @@ def observation_search():
     # Specify the search parameters
     search_params = {
         'subject': 'Patient/' + patient_id,
-        # 'encounter': get_encounter_id(patient_id, smart)
+        'encounter': get_encounter_id(patient_id, smart)
     }
-    #TODO: The next three lines should be temporary, keep these only until James implements adding an encounter when adding a patient.
-    # Uncomment the above line in search_params when the below code is no longer necessary.
-    enc_id = get_encounter_id(patient_id, smart)
-    if enc_id:
-        search_params['encounter'] = enc_id
 
     # Search for all observations who match the search parameters
     search = obs.Observation.where(struct=search_params)

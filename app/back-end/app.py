@@ -23,7 +23,6 @@ app.register_blueprint(observation_endpoint)
 
 hostname = socket.gethostname()
 IPAddr = socket.gethostbyname(hostname)
-app.config['SERVER_NAME']= IPAddr + ":500"
 
 swagger = Swagger(app)
 
@@ -33,4 +32,4 @@ if bool(os.environ.get('GENERATE_DATA')):
     gen.generate_practitioners(10)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)

@@ -82,7 +82,16 @@ def patient_save():
         Updates a patient object with data.
 
         :param pat.Patient pt: The patient being modified.
-        :param dict data: The new patient data.
+        :param dict data: The input data as a JSON dict:
+            {id = '',
+            firstname: '',
+            lastname: '',
+            gender: 'male | female | other | unknown',
+            dob: 'YYYY-MM-dd',
+            email: '',
+            contactNumber:'',
+            address:'',
+            language: 'examples at https://www.hl7.org/fhir/valueset-languages.html'}
         :returns: The updated version of the patient
         """
         if 'firstname' in data:
@@ -96,15 +105,20 @@ def patient_save():
         if 'maritalstatus' in data:
             if create_marital_status(data['maritalstatus']):
                 pt.maritalStatus = create_marital_status(data['maritalstatus'])
-        # TODO: The following code doesn't work because the address returned by /patient?id='' is a str, not a dict.
-#        if 'address' in data:
-#            new_address = create_address(data['address'])
-#            if not pt.address:
-#                pt.address = [new_address]
-#            else:
-#                pt.address.append(new_address)
+        if 'address' in data:
+            new_address = create_address(data['address'])
+            if not pt.address:
+                pt.address = [new_address]
+            else:
+                pt.address.append(new_address)
         if 'language' in data:
             pt.language = data['language']
+        if 'email' in data:
+            # TODO: Implement, try to check if email is in the object already
+            pass
+        if 'contactNumber' in data:
+            # TODO: Implement, try to check if contactNumber is in the object already
+            pass
 
         return pt
     # endregion
@@ -208,7 +222,7 @@ def populate_patient(data) -> pat.Patient:
             dob: 'YYYY-MM-dd',
             email: '',
             contactNumber:'',
-            address:'',
+            address:'{street: '', city: '', state: '', country: ''}',
             language: 'examples at https://www.hl7.org/fhir/valueset-languages.html'}
     :return: Patient resource.
     """

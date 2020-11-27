@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import axios from "axios";
+import axios from 'axios';
+import {AddInjuryComponent} from "../add-injury/add-injury.component";
+import {AddVisitComponent} from "../add-visit/add-visit.component";
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-patient-details',
@@ -9,10 +12,14 @@ import axios from "axios";
 })
 export class PatientDetailsComponent implements OnInit {
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(public dialog: MatDialog, private route: ActivatedRoute) { }
 
   patientId:any;
   patient: any
+  notes: any
+  history: any
+  emergencyContacts: any
+  observation: any
   baseUrl = 'http://127.0.0.1:5000/';
   backgroundColor = '';
 
@@ -21,7 +28,11 @@ export class PatientDetailsComponent implements OnInit {
 
     let patientUrl = this.baseUrl + 'patient?id=' + this.patientId;
     //let patientUrl = this.baseUrl + 'patient?id=' + 'bf3cb50a-d753-4ddc-ad83-839250edcba9';
-    this.patient = (await axios.get(patientUrl)).data;
+    let patientData = (await axios.get(patientUrl)).data;
+    this.patient = patientData.patient;
+    this.notes = patientData.notes;
+    this.history = patientData.history;
+    this.emergencyContacts = patientData.emergencyContacts;
 
     this.setBg();
 
@@ -35,9 +46,68 @@ export class PatientDetailsComponent implements OnInit {
 
   addVisit(){
     console.log('add visit');
+    const dialogRef = this.dialog.open(AddVisitComponent, {
+      width: '700px',
+      data: {patientId:this.patientId}
+    });
+
+    dialogRef.afterClosed().subscribe(async result => {
+
+      if(result)
+      {
+        console.log('Dialog result: ', result);
+        let visitBody = {
+          notes: result,
+          timeStamp : new Date(),
+          practitioner: '1221'
+        }
+
+        console.log(visitBody);
+
+        //let visitUrl = this.baseUrl + 'observation/save';
+        //let resource = (await axios.post(visitUrl, visitBody)).data;
+
+        //console.log(resource);
+
+      }
+
+    });
   }
+
   addInjury(){
     console.log('add injury');
+    const dialogRef = this.dialog.open(AddInjuryComponent, {
+      width: '730px',
+      data: {patientId:this.patientId}
+    });
+
+    dialogRef.afterClosed().subscribe(async result => {
+
+      if(result)
+      {
+        console.log('Dialog result: ', result);
+
+        let observationUrl = this.baseUrl + 'observation/save';
+
+        let postBody = this.getInjuryBody(result);
+
+        console.log(postBody);
+        let resource = (await axios.post(observationUrl, postBody)).data;
+
+        console.log(resource);
+      }
+
+    });
+  }
+
+  getInjuryBody(result){
+    let body = {
+      patientID: this.patientId,
+      bodyPart: result.bodyPart,
+      injury: result.type
+    }
+
+    return body;
   }
 
   setBg(){

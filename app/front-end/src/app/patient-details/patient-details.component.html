@@ -48,19 +48,13 @@
       <div class="card-body d-flex flex-column align-items-start">
         <strong class="d-inline-block mb-2 text-info">Personal Information</strong>
         <h3 class="mb-0">
-          <a class="text-dark" href="#">Patient Id: {{patientId}}</a>
-          <br/>
-          <a class="text-dark" href="#">Firstname: {{patient?.firstname}}
-          </a><br/>
-          <a class="text-dark" href="#">Lastname: {{patient?.lastname}}</a>
-          <br/>
-          <a class="text-dark" href="#">Birthdate: {{patient?.dob}}</a>
-          <br/>
-          <a class="text-dark" href="#">Marital Status: {{patient?.maritalstatus}}</a>
-          <br/>
-          <a class="text-dark" href="#">Gender: {{patient?.gender}}
-          </a> <br/>
-          <a class="text-dark" href="#">Address: {{patient?.address}}</a>
+          <p class="text-dark"><strong>Patient Id:</strong> {{patientId}}</p>
+          <p class="text-dark"><strong>Firstname:</strong> {{patient?.firstname}}</p>
+          <p class="text-dark" ><strong>Lastname: </strong>{{patient?.lastname}}</p>
+          <p class="text-dark" ><strong>Birthdate:</strong> {{patient?.dob}}</p>
+          <p class="text-dark" ><strong>Marital Status: </strong>{{patient?.maritalstatus}}</p>
+          <p class="text-dark" ><strong>Gender: </strong>{{patient?.gender}}</p>
+          <p class="text-dark" ><strong>Address: </strong>{{patient?.address}}</p>
         </h3>
       </div>
     </div>
@@ -70,9 +64,14 @@
       <div class="card-body d-flex flex-column align-items-start">
         <strong class="d-inline-block mb-2 text-info">Emergency Contacts</strong>
         <h3 class="mb-0">
-          <a class="text-dark" href="#">Name: Abc Xyz</a>
-          <br/>
-          <a class="text-dark" href="#">Relationship: Brother</a>
+          <div *ngFor="let contact of emergencyContacts" >
+            <p class="text-dark" ><strong>Name:</strong> {{contact.name}}</p>
+            <p class="text-dark" ><strong>Relationship:</strong> {{contact.relationship}}</p>
+            <p class="text-dark" ><strong>Gender:</strong> {{contact.gender}}</p>
+            <p class="text-dark" ><strong>Contact:</strong> {{contact.phone}}</p>
+            <p class="text-dark" ><strong>Address:</strong> {{contact.address}}</p>
+            <br/>
+          </div>
         </h3>
       </div>
     </div>
@@ -84,7 +83,14 @@
     <div class="card flex-md-row mb-4 box-shadow h-md-250">
       <div class="card-body d-flex flex-column align-items-start">
         <strong class="d-inline-block mb-2 text-info">History</strong>
-        <p class="card-text mb-auto">History Here</p>
+        <h3 class="mb-0">
+          <div *ngFor="let hist of history" >
+            <p class="text-dark" ><strong>Practitioner:</strong> {{hist.practitioner}}</p>
+            <p class="text-dark" ><strong>Reason:</strong> {{hist.reason}}</p>
+            <p class="text-dark" ><strong>Time:</strong> {{hist.time}}</p>
+            <br/>
+          </div>
+        </h3>
       </div>
     </div>
   </div>
@@ -92,7 +98,14 @@
     <div class="card flex-md-row mb-4 box-shadow h-md-250">
       <div class="card-body d-flex flex-column align-items-start">
         <strong class="d-inline-block mb-2 text-info">Notes</strong>
-        <p class="card-text mb-auto">Notes Here</p>
+        <h3 class="mb-0">
+          <div *ngFor="let note of notes" >
+            <p class="text-dark" ><strong>Practitioner:</strong> {{note.practitioner}}</p>
+            <p class="text-dark" ><strong>Note:</strong> {{note.note}}</p>
+            <p class="text-dark" ><strong>Time:</strong> {{note.time}}</p>
+            <br/>
+          </div>
+        </h3>
       </div>
     </div>
   </div>

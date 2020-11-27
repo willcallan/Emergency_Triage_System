@@ -16,10 +16,17 @@ import {MatNativeDateModule, MatRippleModule} from '@angular/material/core';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatSelectModule} from "@angular/material/select";
 import {MatIconModule} from '@angular/material/icon';
+import { MatDialogModule } from '@angular/material/dialog';
 import { PatientDetailsComponent } from './patient-details/patient-details.component';
 import { BtnCellRenderer } from './btn-cell-renderer.component';
 import { CommonModule } from '@angular/common';
-import {APP_BASE_HREF} from '@angular/common';
+import { AddInjuryComponent } from './add-injury/add-injury.component';
+import { AddVisitComponent } from './add-visit/add-visit.component';
+
+import {MatDividerModule} from '@angular/material/divider';
+import {MatSliderModule} from '@angular/material/slider';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -27,7 +34,9 @@ import {APP_BASE_HREF} from '@angular/common';
     StaffListComponent,
     AddPatientComponent,
     PatientDetailsComponent,
-    BtnCellRenderer
+    BtnCellRenderer,
+    AddInjuryComponent,
+    AddVisitComponent
   ],
   imports: [
     BrowserModule,
@@ -36,7 +45,11 @@ import {APP_BASE_HREF} from '@angular/common';
     BrowserAnimationsModule,
     AppRoutingModule,
     MatInputModule,
+    MatDividerModule,
+    MatSliderModule,
+    MatSlideToggleModule,
     MatDatepickerModule,
+    MatDialogModule,
     MatNativeDateModule,
     MatRippleModule,
     MatAutocompleteModule,
@@ -45,7 +58,7 @@ import {APP_BASE_HREF} from '@angular/common';
     FormsModule,
     CommonModule
   ],
-  providers: [{provide: APP_BASE_HREF, useValue: '/'}],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

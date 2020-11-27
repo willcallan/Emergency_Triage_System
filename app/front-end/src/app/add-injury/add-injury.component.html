@@ -1,0 +1,70 @@
+<h1 mat-dialog-title>Add Injury</h1>
+<div mat-dialog-content>
+
+  <br/>
+  <div class="row">
+    <div class="col"></div>
+    <div class="col">
+      <mat-slide-toggle (click)="updateView('area')" [(ngModel)]="enableArea">Body Injury</mat-slide-toggle>
+    </div>
+    <div class="col"></div>
+    <div class="col">
+      <mat-slide-toggle (click)="updateView('system')" [(ngModel)]="enableSystem">System Injury</mat-slide-toggle>
+    </div>
+    <div class="col"></div>
+  </div>
+  <br/>
+  <br/>
+  <div *ngIf="enableArea">
+    <mat-form-field appearance="fill">
+      <mat-label>Body Part</mat-label>
+      <mat-select [(ngModel)]="data.bodyPart">
+        <mat-option *ngFor="let part of bodyParts" [value]="part.value">
+          {{part.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    &nbsp; &nbsp; &nbsp; &nbsp;
+    <mat-form-field appearance="fill">
+      <mat-label>Injury Type</mat-label>
+      <mat-select [(ngModel)]="data.type">
+        <mat-option *ngFor="let type of types" [value]="type.value">
+          {{type.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    &nbsp; &nbsp; &nbsp; &nbsp;
+    Pain Level:
+    <mat-slider
+      [(ngModel)]="data.painLevel"
+      thumbLabel
+      tickInterval="1"
+      min="0"
+      max="10">Pain Level</mat-slider>
+    <br/>
+    <mat-form-field style="width: 100%">
+      <mat-label>Notes</mat-label>
+      <textarea matInput placeholder="" [(ngModel)]="data.notes"></textarea>
+    </mat-form-field>
+    <br/>
+    <br/>
+  </div>
+
+  <div *ngIf="enableSystem">
+    <mat-form-field style="width: 100%">
+      <mat-label>Notes</mat-label>
+      <textarea matInput placeholder="" [(ngModel)]="data.notes"></textarea>
+    </mat-form-field>
+    <br/>
+    <br/>
+  </div>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-stroked-button mat-dialog-close>Cancel</button>
+  <button mat-stroked-button color="primary" [mat-dialog-close]="data" *ngIf="enableArea" (click)="addInjury()"
+          cdkFocusInitial>Add Body Injury
+  </button>
+  <button mat-stroked-button color="primary" [mat-dialog-close]="data" *ngIf="enableSystem" (click)="addInjury()"
+          cdkFocusInitial>Add System Injury
+  </button>
+</div>

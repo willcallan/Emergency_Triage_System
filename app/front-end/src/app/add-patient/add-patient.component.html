@@ -39,7 +39,6 @@
 </div>
 
 <div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAdd">
-  <div class="container" style="display: flow!important;">
 
     <mat-form-field>
       <mat-label>First Name</mat-label>
@@ -74,8 +73,8 @@
       <mat-datepicker #picker1></mat-datepicker>
     </mat-form-field>
 
-    <br/>
 
+  <span>&nbsp;&nbsp;&nbsp;</span>
     <mat-form-field>
       <mat-label>Email</mat-label>
       <input matInput [(ngModel)]="email">
@@ -89,28 +88,79 @@
       <input type="tel" matInput [(ngModel)]="contactNumber" placeholder="123-456-7890">
     </mat-form-field>
 
-    <span>&nbsp;&nbsp;&nbsp;</span>
 
-    <mat-form-field>
-      <mat-label>Address</mat-label>
-      <input matInput [(ngModel)]="address">
-    </mat-form-field>
-
-    <span>&nbsp;&nbsp;&nbsp;</span>
-
-    <mat-form-field appearance="fill">
-      <mat-label>Language</mat-label>
-      <mat-select [(ngModel)]="language">
-        <mat-option value="en">English</mat-option>
-        <mat-option value="es">Spanish</mat-option>
-        <mat-option value="fr">French</mat-option>
-        <mat-option value="it">Italian</mat-option>
-        <mat-option value="zh">Chinese</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-  </div>
 </div>
+
+<br/>
+
+<div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAdd">
+
+
+  <br/>
+  <span>&nbsp;&nbsp;&nbsp;</span>
+
+  <mat-form-field>
+    <mat-label>Address - Street</mat-label>
+    <input matInput [(ngModel)]="street">
+  </mat-form-field>
+
+  <span>&nbsp;&nbsp;&nbsp;</span>
+
+  <mat-form-field>
+    <mat-label>Address - City</mat-label>
+    <input matInput [(ngModel)]="city">
+  </mat-form-field>
+
+  <span>&nbsp;&nbsp;&nbsp;</span>
+
+  <mat-form-field>
+    <mat-label>Address - State</mat-label>
+    <input matInput [(ngModel)]="state">
+  </mat-form-field>
+
+  <span>&nbsp;&nbsp;&nbsp;</span>
+
+  <mat-form-field>
+    <mat-label>Address - Country</mat-label>
+    <input matInput [(ngModel)]="country">
+  </mat-form-field>
+
+  <span>&nbsp;&nbsp;&nbsp;</span>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Language</mat-label>
+    <mat-select [(ngModel)]="language">
+      <mat-option value="en">English</mat-option>
+      <mat-option value="es">Spanish</mat-option>
+      <mat-option value="fr">French</mat-option>
+      <mat-option value="it">Italian</mat-option>
+      <mat-option value="zh">Chinese</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <span>&nbsp;&nbsp;&nbsp;</span>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Marital Status</mat-label>
+    <mat-select [(ngModel)]="maritalstatus">
+      <mat-option value="A">Annulled</mat-option>
+      <mat-option value="D">Divorced</mat-option>
+      <mat-option value="I">Interlocutory</mat-option>
+      <mat-option value="L">Legally Separated</mat-option>
+      <mat-option value="M">Married</mat-option>
+      <mat-option value="P">Polygamous</mat-option>
+      <mat-option value="S">Never Married</mat-option>
+      <mat-option value="T">Domestic partner</mat-option>
+      <mat-option value="U">unmarried</mat-option>
+      <mat-option value="W">Widowed</mat-option>
+      <mat-option value="UNK">Unknown</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+</div>
+
+<br/>
+
 <div class="container" style="display: flex; justify-content: center; align-items: center;" *ngIf="enableAdd">
   <button mat-raised-button color="primary" (click)="addPatient()">Add Patient</button>
 </div>

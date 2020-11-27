@@ -54,8 +54,12 @@ export class AddPatientComponent implements OnInit {
   dob: any = '';
   email: any = '';
   contactNumber: any = '';
-  address: any = '';
+  street: any = '';
+  city: any = '';
+  state: any = '';
+  country: any = '';
   language: any = '';
+  maritalstatus: any = '';
   searchPatientList: any = '';
 
   private gridApi;
@@ -109,24 +113,28 @@ export class AddPatientComponent implements OnInit {
       console.log(this.searchPatientId);
       let patientIdUrl = this.baseUrl + 'patient?id=' + this.searchPatientId;
       console.log(patientIdUrl);
-      this.searchPatientList = (await axios.get(patientIdUrl)).data;
+      this.searchPatientList = [((await axios.get(patientIdUrl)).data).patient];
     }
+    else{
+      let dob = '';
 
-    let dob = '';
+      if(this.searchDOB != '')
+      {
+        dob = this.formatDob(this.searchDOB);
+      }
 
-    if(this.searchDOB != '')
-    {
-      dob = this.formatDob(this.searchDOB);
+      let patientSearchUrl = this.baseUrl + 'patient/search?firstname=' + this.searchFirstname + '&lastname=' + this.searchLastname + '&dob='+dob;
+      console.log(patientSearchUrl);
+
+      this.searchPatientList = ((await axios.get(patientSearchUrl)).data);
+      //let patientUrl = this.baseUrl + 'patient?id=' + 'bf3cb50a-d753-4ddc-ad83-839250edcba9';
+
+
+      console.log(this.searchPatientList);
     }
-
-    let patientSearchUrl = this.baseUrl + 'patient/search?firstname=' + this.searchFirstname + '&lastname=' + this.searchLastname + '&dob='+dob;
-    console.log(patientSearchUrl);
-
-    this.searchPatientList = ((await axios.get(patientSearchUrl)).data);
-    //let patientUrl = this.baseUrl + 'patient?id=' + 'bf3cb50a-d753-4ddc-ad83-839250edcba9';
-
 
     console.log(this.searchPatientList);
+
     this.rowData = this.searchPatientList;
 
   }
@@ -141,8 +149,9 @@ export class AddPatientComponent implements OnInit {
       dob: '',
       email: this.email,
       contactNumber: this.contactNumber,
-      address: this.address,
-      language: this.language
+      address: {street: this.street, city: this.city, state: this.state, country: this.country},
+      language: this.language,
+      maritalstatus: this.maritalstatus
     }
 
     if(this.dob){

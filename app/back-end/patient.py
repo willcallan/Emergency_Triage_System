@@ -506,11 +506,11 @@ def get_checkin_time(patient, smart) -> str:
                                          '_sort': '-date',                  # Sort the encounters newest-oldest
                                          '_count': '1'})                    # Look at only the most recent encounter
     results: List[enc.Encounter] = search.perform_resources(smart.server)
-
+    import dateutil.parser
     # If they have one, return the time the encounter started
     if len(results) > 0:
-        start = datetime.strptime(results[0].period.start.isostring, '%Y-%m-%dT%H:%M:%S%z')
-        now = utc.localize(datetime.utcnow())
+        start = dateutil.parser.parse(results[0].period.start.isostring)
+        now = datetime.now()
         difference = "{:.2f}".format((now - start).total_seconds() / (60 * 60)) # Get difference in hours, to 2 decimal places
         return f'{difference} hours ago'
     # If they don't have one, return empty value
@@ -614,6 +614,8 @@ def compile_patient_data(patient,history,notes,emergency_contacts,observations):
 
 
 def create_encounter(patient_id, smart):
+    import fhirclient.models.period as per
+    import fhirclient.models.fhirdate as dat
     encounter = enc.Encounter()
     encounter.subject = ref.FHIRReference({'reference': 'Patient/' + patient_id})
 
@@ -630,6 +632,12 @@ def create_encounter(patient_id, smart):
     code.code = "AMB"
     encounter.class_fhir = code
     encounter.status = 'arrived'
+
+    period = per.Period()
+    date_start = dat.FHIRDate()
+    date_start.date = datetime.now()
+    period.start = date_start
+    encounter.period = period
 
     status = encounter.create(smart.server)
     return status['id']

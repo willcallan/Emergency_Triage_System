@@ -10,6 +10,7 @@ import fhirclient.models.practitioner as pract
 import fhirclient.models.practitionerrole as practrole
 import fhirclient.models.fhirreference as ref
 from fhirclient.models.patient import PatientContact
+from patient import create_encounter
 import random
 from dateutil import parser
 from faker import Faker
@@ -91,6 +92,7 @@ class DataGenerator:
             ):
                 addPatients(status['id'])
                 print(status['id'])
+                create_encounter(status['id'], smart)
                 patient_ids.append(status['id'])
             else:
                 print(status)

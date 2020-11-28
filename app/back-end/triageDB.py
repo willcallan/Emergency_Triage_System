@@ -223,7 +223,7 @@ def addPatientDetail(triagePatientId, practionerId, firstEncounterDate, lastseen
         # create a cursor
         cur = conn.cursor()
         sql = """INSERT INTO public.tbl_triagepatientdetail (triagepatientid, triagepractionerid, firstencounterdate, 
-                        lastseendate, dischargedate, active)
+                        lastseen, dischargedate, active)
                          VALUES(%s,%s,%s,%s,%s,%s) RETURNING triagepatientdetailid;"""
         cur.execute(sql, (triagePatientId, practionerId, firstEncounterDate, lastseendate, dischargeDate, active,))
         TriagePatientdetailId = cur.fetchone()[0]

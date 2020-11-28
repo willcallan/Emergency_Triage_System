@@ -14,8 +14,9 @@ from fhirclient.models.coding import Coding
 from fhirclient.models.fhirreference import FHIRReference
 from fhirclient.models.fhirdate import FHIRDate
 from fhirclient.models.annotation import Annotation
+from fhirclient.models.quantity import Quantity
 
-from vars import settings, body_site_lookup, injury_lookup
+from vars import settings, body_site_lookup, wound_lookup, systems_injury_lookup
 
 observation_endpoint = Blueprint('observation_endpoint', __name__)
 
@@ -31,6 +32,10 @@ def observation_save():
     data_json = request.get_json()
     smart = client.FHIRClient(settings=settings)
     observation = populate_observation(data_json, smart)
+
+    # If the observation did not return anything, tell the user the error
+    if not observation:
+        return 'Observation was formatted incorrectly.'
 
     # Return the ID of the observation, or an error message
     status = observation.create(smart.server)
@@ -61,7 +66,9 @@ def observation_search():
     # Specify the search parameters
     search_params = {}
     search_params['patient'] = patient_id
-    search_params['encounter'] = get_encounter_id(patient_id, smart)
+    enc_id = get_encounter_id(patient_id, smart)
+    if enc_id:
+        search_params['encounter'] = enc_id
 
     # Search for all observations who match the search parameters
     search = obs.Observation.where(struct=search_params)
@@ -82,24 +89,161 @@ def populate_observation(data, smart) -> obs.Observation:
     """
     Returns an Observation resource populated with the input data.
 
-    :param dict data: The input data as a JSON dict:
+    :param dict data: The input for wound data as a JSON dict:
             {patientID: '',
             bodyPart: '',
             injury: '',
             severity: '' OPTIONAL}
+        The input for systems data as a JSON dict:
+            {system: '',
+            value: '' OPTIONAL}
     :param client.FHIRClient smart: The FHIR client.
+    :return: Observation resource.
+    """
+    # Create a default blank Observation.
+    observation = create_blank_observation(data['patientID'], smart)
+
+    # If this is not a wound, it should be a system injury
+    if 'system' in data:
+        observation = create_systems_observation(data, observation)
+    elif 'injury' in data:
+        observation = create_injury_observation(data, observation)
+    else:
+        return None
+
+    # Save the user's notes about this observation
+    if 'note' in data:
+        gcs_annotation = Annotation()
+        gcs_annotation.time = FHIRDate(get_current_time())
+        gcs_annotation.text = data['note']
+        if observation.note:
+            observation.note.append(gcs_annotation)
+        else:
+            observation.note = [gcs_annotation]
+
+    return observation
+
+
+def create_blank_observation(patientID, smart) -> obs.Observation:
+    """
+    Returns a blank Observation resource populated with common data (things like the patient, time, encounter, etc.).
+    :param str patientID: The FHIR ID of the patient.
+    :param client.FHIRClient smart: The FHIR client.
+    :return: Observation resource.
+    """
+    observation = obs.Observation()
+    # Status of the observation (specific values found at https://www.hl7.org/fhir/codesystem-observation-status.html)
+    observation.status = 'preliminary'
+    # How the observation was conducted
+    categoryconcept = CodeableConcept()
+    categoryconcept.coding = [Coding(
+        {'system': 'http://terminology.hl7.org/CodeSystem/observation-category', 'code': 'exam', 'display': 'exam'})]
+    observation.category = [categoryconcept]
+    # The patient being observed
+    observation.subject = FHIRReference({'reference': 'Patient/' + patientID})
+    # The encounter that this observation is part of
+    observation.encounter = FHIRReference({'reference': get_encounter_id(patientID, smart)})
+    # The time that this observation was first made (times should be in ISO format)
+    observation.effectiveDateTime = FHIRDate(get_current_time())
+    # The time that this observation was reviewed and approved (times should be in ISO format)
+    observation.issued = observation.effectiveDateTime
+
+    return observation
+
+
+def create_systems_observation(data, observation) -> obs.Observation:
+    """
+    Returns an Observation resource populated with data about a systems injury.
+
+    :param dict data: The input for systems data as a JSON dict:
+            {system: '',
+            value: '' OPTIONAL}
+    :param obs.Observation observation: A default observation.
     :return: Observation resource.
     """
 
     # region Nested Functions
-    def get_current_time() -> str:
+    # Retrieved calculation from https://www.ncbi.nlm.nih.gov/books/NBK513298/
+    def get_Glasgow_score(values) -> (Quantity, Annotation):
         """
-        Return the current time as an ISO formatted string.
+        Returns the Glasgow Score total for eye, verbal, and motor response.
 
-        :returns: The current time.
+        :param dict values: The input for GCS data as a JSON dict:
+            {eye: '',
+            verbal: '',
+            motor: ''}
+            :returns: valueQuantity of GCS score and note explaining score in the form GCSx=ExVxMx.
         """
-        return datetime.now().astimezone().isoformat()
+        # Get valueQuantity
+        total = int(values['eye']) + int(values['verbal']) + int(values['motor'])
+        gcs_quantity = Quantity()
+        gcs_quantity.value = total
+        gcs_quantity.unit = 'score'
+        gcs_quantity.system = 'http://loinc.org'
 
+        # Get note
+        note = ''
+        note += 'GCS' + str(total)
+        note += '='
+        note += 'E' + str(values['eye'])
+        note += 'V' + str(values['verbal'])
+        note += 'M' + str(values['motor'])
+        gcs_annotation = Annotation()
+        gcs_annotation.time = FHIRDate(get_current_time())
+        gcs_annotation.text = note
+
+        return gcs_quantity, gcs_annotation
+
+    # Using classification from https://litfl.com/major-haemorrhage-in-trauma/
+    def get_hemorrhage_class(value):
+        """
+        Returns the Glasgow Score total for eye, verbal, and motor response.
+
+        :param dict value: The input for GCS data as a str:
+               'Class 1' | 'Class 2' | 'Class 3' | 'Class 4'
+        :returns: valueQuantity of GCS score and note explaining score in the form GCSx=ExVxMx.
+        """
+        return value
+    # endregion
+
+    # Just in case check
+    if data['system'] not in systems_injury_lookup:
+        return None
+
+    # Get the data for the system being observed
+    system_data = systems_injury_lookup[data['system']]
+
+    # Marking which system this observation is about
+    codeconcept = CodeableConcept()
+    codeconcept.coding = [Coding({'system': system_data[2], 'code': system_data[0], 'display': system_data[1]})]
+    codeconcept.text = codeconcept.coding[0].display
+    observation.code = codeconcept
+
+    # Filling in extra info about specific injuries
+    if system_data[1] == 'Glasgow coma score total':
+        quantity, note = get_Glasgow_score(data['value'])
+        observation.valueQuantity = quantity
+        observation.note = [note]
+    elif system_data[1] == 'Procedure estimated blood loss':
+        observation.valueString = get_hemorrhage_class(data['value'])
+
+    return observation
+
+
+def create_injury_observation(data, observation) -> obs.Observation:
+    """
+    Returns an Observation resource populated with data about a wound.
+
+    :param dict data: The input for wound data as a JSON dict:
+            {patientID: '',
+            bodyPart: '',
+            injury: '',
+            severity: '' OPTIONAL}
+    :param obs.Observation observation: A default observation.
+    :return: Observation resource.
+    """
+
+    # region Nested Functions
     def get_bodysite_concept(term) -> CodeableConcept:
         """
         Returns CodeableConcept for a body part.
@@ -120,41 +264,25 @@ def populate_observation(data, smart) -> obs.Observation:
         :param str term: The lay term for the wound.
         :return: CodeableConcept with the LOINC code for that wound.
         """
-        wound_data = injury_lookup[term]
+        wound_data = wound_lookup[term]
         concept = CodeableConcept()
         concept.coding = [Coding({'system': 'http://loinc.org', 'code': wound_data[0], 'display': wound_data[1]})]
         concept.text = concept.coding[0].display
         return concept
     # endregion
 
-    observation = obs.Observation()
-    # Status of the observation (specific values found at https://www.hl7.org/fhir/codesystem-observation-status.html)
-    observation.status = 'preliminary'
-    # How the observation was conducted
-    categoryconcept = CodeableConcept()
-    categoryconcept.coding = [Coding({'system': 'http://terminology.hl7.org/CodeSystem/observation-category', 'code': 'exam', 'display': 'exam'})]
-    observation.category = [categoryconcept]
     # Marking that this observation is about a wound
     codeconcept = CodeableConcept()
     codeconcept.coding = [Coding({'system': 'http://loinc.org', 'code': '72300-7', 'display': 'Wound type'})]
     codeconcept.text = codeconcept.coding[0].display
     observation.code = codeconcept
-    # The patient being observed
-    observation.subject = FHIRReference({'reference': 'Patient/' + data['patientID']})
-    # The encounter that this observation is part of
-    #observation.encounter = FHIRReference({'reference': get_encounter_id(data['patientID'], smart)})
-
-    # The time that this observation was first made (times should be in ISO format)
-    observation.effectiveDateTime = FHIRDate(get_current_time())
-    # The time that this observation was reviewed and approved (times should be in ISO format)
-    observation.issued = observation.effectiveDateTime
     # The body part that is marked
     observation.bodySite = get_bodysite_concept(data['bodyPart'])
     # The results of the observation (the field used for this changes depending on how the observation was measured)
     observation.valueCodeableConcept = get_wound_value_concept(data['injury'])
     # The severity of the wound
     if 'severity' in data:
-        note = Annotation({'time': get_current_time(), 'text': 'Marked severity: ' + data['severity']})
+        note = Annotation({'time': get_current_time(), 'text': 'Marked severity: ' + str(data['severity'])})
         observation.note = [note]
 
     return observation
@@ -181,18 +309,40 @@ def get_observation_data(observation) -> dict:
                 if annotation.text[0:-2] == 'Marked severity:':
                     return annotation.text[-1:]
         return ''
+
+    def get_GCS_score(observation) -> str:
+        """
+        Returns the GCS score that was coded for this observation.
+
+        :param obs.Observation observation: The observation being measured.
+        :return: The GCS score (string of form GCSx=ExVxMx).
+        """
+        if observation.note:
+            for annotation in observation.note:
+                if annotation.text[0:3] == 'GCS':
+                    return annotation.text
+        return ''
     # endregion
 
     ret_dict = {}
     if observation:
         # Observation data
         ret_dict['id'] = observation.id
+        ret_dict['time'] = observation.effectiveDateTime.isostring
         # Wound data
         if observation.code.coding[0].code == '72300-7':
             ret_dict['injury'] = observation.valueCodeableConcept.text
             ret_dict['bodyPart'] = observation.bodySite.text
-            ret_dict['time'] = observation.effectiveDateTime.isostring
             ret_dict['severity'] = get_severity(observation)
+        # Systems injury data
+        else:
+            ret_dict['system'] = observation.code.text
+            if ret_dict['system'] == 'Glasgow coma score total':
+                ret_dict['value'] = get_GCS_score(observation)
+            elif ret_dict['system'] == 'Smoke inhalation injury':
+                ret_dict['value'] = ''
+            elif ret_dict['system'] == 'Procedure estimated blood loss':
+                ret_dict['value'] = observation.valueString
 
     return ret_dict
 
@@ -215,6 +365,15 @@ def get_encounter_id(patientID, smart) -> str:
     if len(results) > 0:
         return 'Encounter/' + results[0].id
     return ''
+
+
+def get_current_time() -> str:
+    """
+    Return the current time as an ISO formatted string.
+
+    :returns: The current time.
+    """
+    return datetime.now().astimezone().isoformat()
 
 # endregion
 

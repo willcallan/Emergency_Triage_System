@@ -39,7 +39,7 @@ marital_status_lookup = {
 
 # region observation.py
 
-injury_lookup = {   # Values from https://loinc.org/72300-7/
+wound_lookup = {   # Values from https://loinc.org/72300-7/
     'abrasion': ['LA7410-9', 'Abrasion'],
     'avulsion': ['LA18220-6', 'Avulsion'],
     'bite': ['LA19023-3', 'Bite'],
@@ -88,5 +88,12 @@ body_site_lookup = {
     'rightFoot': ['7769000', 'Right foot'],
 }
 """Dictionary of body parts. Values are the SNOMED code and display."""
+
+systems_injury_lookup = {
+    'GCS': ['9269-2', 'Glasgow coma score total', 'http://loinc.org'],
+    'smokeInhalation': ['426936004', 'Smoke inhalation injury', 'http://snomed.info/sct'],
+    'bloodLoss': ['59770-8', 'Procedure estimated blood loss', 'http://loinc.org'],
+}
+"""Dictionary of system injury codes. Values are the code, display, and code type."""
 
 # endregion

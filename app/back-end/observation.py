@@ -60,7 +60,7 @@ def observation_search():
 
     # Specify the search parameters
     search_params = {}
-    search_params['subject'] = 'Patient/' + patient_id
+    search_params['patient'] = patient_id
     search_params['encounter'] = get_encounter_id(patient_id, smart)
 
     # Search for all observations who match the search parameters
@@ -142,7 +142,7 @@ def populate_observation(data, smart) -> obs.Observation:
     # The patient being observed
     observation.subject = FHIRReference({'reference': 'Patient/' + data['patientID']})
     # The encounter that this observation is part of
-    observation.encounter = FHIRReference({'reference': get_encounter_id(data['patientID'], smart)})
+    #observation.encounter = FHIRReference({'reference': get_encounter_id(data['patientID'], smart)})
 
     # The time that this observation was first made (times should be in ISO format)
     observation.effectiveDateTime = FHIRDate(get_current_time())

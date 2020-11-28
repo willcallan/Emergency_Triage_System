@@ -59,14 +59,13 @@ def observation_search():
     smart = client.FHIRClient(settings=settings)
 
     # Specify the search parameters
-    search_params = {
-        'subject': 'Patient/' + patient_id,
-        'encounter': get_encounter_id(patient_id, smart)
-    }
+    search_params = {}
+    search_params['subject'] = 'Patient/' + patient_id
+    search_params['encounter'] = get_encounter_id(patient_id, smart)
 
     # Search for all observations who match the search parameters
     search = obs.Observation.where(struct=search_params)
-    observations: List[obs.Observation] = search.perform_resources(smart.server)
+    observations = search.perform_resources(smart.server)
 
     ret_list = []
     for o in observations:

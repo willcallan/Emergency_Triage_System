@@ -37,6 +37,8 @@ CREATE TABLE "tbl_triagepatientdetail"
     "triagepractionerid" bigint,
 
     "firstencounterdate" date,
+	
+	"lastseen" timestamp,
 
     "dischargedate" date,
 
@@ -73,8 +75,11 @@ CREATE TABLE "tbl_triagepatientstatus"
     "triagepatientdetailid" bigint,
 
     "patientcurrentlocation" text,
+	
     "notes" text,
-    "seen by" text,
+	
+    "seenby" text,
+	
     "datetimeseen" timestamp ,
 
     "triageesistatusid" bigint,
@@ -148,7 +153,7 @@ INSERT INTO "tbl_triageprofessional" ("fhirpractionerid", "triageworkstatusid", 
 VALUES ('5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
 
 INSERT INTO "tbl_triagepatientdetail" ("triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
-(2,1,'2020-10-28','2020-11-01','TRUE');
+(2,1,'2020-10-28','2020-11-01','FALSE');
 
 
 

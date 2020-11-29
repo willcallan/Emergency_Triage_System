@@ -23,7 +23,6 @@ from fhirclient.models.address import Address
 from fhirclient.models.fhirdate import FHIRDate
 from fhirclient.models.codeableconcept import CodeableConcept
 from fhirclient.models.coding import Coding
-from fhirclient.models.patient import PatientContact
 from dateutil.relativedelta import relativedelta
 import json
 
@@ -41,6 +40,11 @@ def patient_save():
     Creates and saves a patient into the FHIR server.
     If an ID is provided, updates the patient in the FHIR server instead.
     """
+
+    import fhirclient.models.practitioner as pract
+    from triageDB import addPatientEvent, getPatientDetailIdFromFhir, updatePatientDetail, translateFhirIdtoLocalId
+    from vars import default_events, reverse_esi_lookup
+    import dateutil.parser
 
     # region Nested Functions
     def create_marital_status(term):
@@ -121,6 +125,37 @@ def patient_save():
             pass
 
         return pt
+
+    def update_all_patient_data(data, smart):
+
+        # Update patient info
+        patient_data = data['patient']
+        detail_id = getPatientDetailIdFromFhir(patient_data['id'])[0][0]
+        patient: pat.Patient = pat.Patient.read(patient_data['id'], smart.server)
+        patient = modify_patient(patient, data)
+        db_id = translateFhirIdtoLocalId(patient_data['seenby'], pract.Practitioner())[0][0]
+        pat_db_id = translateFhirIdtoLocalId(patient_data['id'], pat.Patient())[0][0]
+
+        try:
+            last_seen_date = dateutil.parser.parse(patient_data['lastseen'])
+        except:
+            last_seen_date = None
+
+        updatePatientDetail(pat_db_id,
+                            db_id,
+                            patient_data['location'],
+                            reverse_esi_lookup[patient_data['esi']][0],
+                            last_seen_date)
+
+        status = patient.update(smart.server)
+
+        # Create Notes
+        for notes in data['notes']:
+            if 'id' not in notes:
+                addPatientEvent(detail_id, default_events['NOTE'], notes['note'], notes['author'])
+
+        return status
+
     # endregion
 
     # Get the posted patient
@@ -129,21 +164,22 @@ def patient_save():
     if data_json:
         smart = client.FHIRClient(settings=settings)
 
-        # If the patient has no ID (i.e. entered locally), insert them into the server
-        if 'id' not in data_json or data_json['id'] == '':
-            patient = populate_patient(data_json)
-            status = patient.create(smart.server)
-        # If the patient does have an ID (i.e. they are in the FHIR server), update them
-        else:
-            patient: pat.Patient = pat.Patient.read(data_json['id'], smart.server)
-            # TODO: modify_patient() only updates the Patient Resource, it does not update the patient data in the db.
-            patient = modify_patient(patient, data_json)
-            status = patient.update(smart.server)
+        if 'patient' in data_json:  # This signals that we are getting the big multi-part patient object
+            patient_data = data_json['patient']
+            # If the patient has no ID (i.e. entered locally), insert them into the server
+            if 'id' not in patient_data or patient_data['id'] == '':
+                patient = populate_patient(patient_data)
+                status = patient.create(smart.server)
+                create_encounter(status['id'],smart)
+                insert_patient_details(status['id'])
+            else:
+                # If the patient does have an ID (i.e. they are in the FHIR server), update them
+                status = update_all_patient_data(data_json, smart)
 
         if (
-                status is not None
-                and 'resourceType' in status
-                and status['resourceType'] == 'Patient'
+            status is not None
+            and 'resourceType' in status
+            and status['resourceType'] == 'Patient'
         ):
             return jsonify(status['id'])
         else:
@@ -171,13 +207,14 @@ def patient_search_id():
 
     # Create the flask return json from the data
 
+    notes, history = get_patient_history_and_notes(patient)
+
     all_data = compile_patient_data(
         get_patient_data(patient, smart),
-        get_patient_history(patient, smart),
-        get_patient_notes(patient, smart),
-        get_patient_contacts(patient, smart),
-        [])
-    
+        history,
+        notes,
+        get_patient_contacts(patient, smart))
+
     return jsonify(all_data)
 
 
@@ -293,6 +330,10 @@ def get_patient_data(patient, smart) -> dict:
 
     patient_dict = {}
     if patient:
+
+        # Get patient details
+        details = get_patient_details(patient.id)
+
         # Patient data
         patient_dict['id'] = patient.id
         name, first, last = get_name(patient)       # name
@@ -307,31 +348,33 @@ def get_patient_data(patient, smart) -> dict:
         patient_dict['address'] = get_address(patient)
         patient_dict['language'] = get_language(patient)
         # ESI data
-        esi, code, display = random_esi() # get_esi(patient, smart)
-        patient_dict['esi'] = esi
-        patient_dict['code'] = code
-        patient_dict['display'] = display
+        patient_dict['esi'] = esi_lookup[details['esi']][0]
+        patient_dict['code'] = esi_lookup[details['esi']][1]
+        patient_dict['display'] = esi_lookup[details['esi']][2]
         # ER data
         patient_dict['checkedin'] = get_checkin_time(patient, smart)
         # Data from project database
-        # TODO: Hook this up to the project database, FHIR doesn't store this data
-       # result= getPatientDetailById(patient.id)
-        lastseen, seenby = random_lastseen() # get_last_seen(patient, smart)
-        patient_dict['lastseen'] = lastseen
-        patient_dict['seenby'] = seenby
-        patient_dict['location'] = random.choice(['Waiting room', 'Room 101', 'Room 113', 'Room 204', 'ICU'])
-        patient_dict['status'] = random.choice(['1', '2', '3', '4'])
+        patient_dict['lastseen'] = details['lastseen']
+        patient_dict['seenby'] = details['seenBy']
+        patient_dict['location'] = details['location']
 
     return patient_dict
 
 
-def get_patient_history(patient, smart):
-    return [{"time": "2020-11-26 12:00:00", "practitioner": "Dr. Drson", "reason": "ache"}]
+def get_patient_history_and_notes(patient):
+    from triageDB import getPatientEventsFromFhirId
+
+    notes = []
+    history = []
+
+    for row in getPatientEventsFromFhirId(patient.id):
+        if row[2] is None:
+            history.append({"id": str(row[0]), "author": row[3], "note": row[1], "time": row[4]})
+        else:
+            notes.append({"id": str(row[0]), "author": row[3], "note": row[2], "time": row[4]})
 
 
-def get_patient_notes(patient, smart):
-    return [{"time": "2020-11-26 12:00:00", "practitioner": "Dr. Drson", "note": "The patient is fine"}]
-
+    return notes, history
 
 def get_patient_contacts(patient, smart):
     ret_array = []
@@ -420,20 +463,19 @@ def get_address(patient) -> str:
     :param pat.Patient patient: The patient being measured.
     :returns: The address of the patient.
     """
-    address_list = []
+    address_dict = {}
     addr = patient.address
     if addr:
         if addr[0].line:
-            address_list.append(addr[0].line[0])
+            address_dict['street'] = addr[0].line[0] if addr[0].line is not None else ''
         if addr[0].city:
-            address_list.append(addr[0].city)
+            address_dict['city'] = addr[0].city if addr[0].city is not None else ''
         if addr[0].state:
-            address_list.append(addr[0].state)
+            address_dict['state'] = addr[0].state if addr[0].state is not None else ''
         if addr[0].country:
-            address_list.append(addr[0].country)
-        if address_list:
-            return ', '.join(address_list)
-    return ''
+            address_dict['country'] = addr[0].country if addr[0].country is not None else ''
+
+    return address_dict
 
 
 def get_contact_address(contact) -> str:
@@ -575,18 +617,15 @@ def get_role(observation, smart) -> str:
 # endregion
 
 
-# ---TEMP CODE---
-def random_esi():
-    code = random.choice(list(esi_lookup))
-    return esi_lookup[code]
-
-
-def random_checkin():
-    return random.choice(['1 hour ago', '2 hours ago', '3 hours ago', '30 minutes ago'])
-
-
-def random_lastseen():
-    return random.choice(['0 minutes ago', '1 minute ago', '2 minutes ago', '3 minutes ago']), random.choice(['Doctor', 'Nurse'])
+def get_patient_details(patient_id):
+    from triageDB import getPatientDetailsFromFhir
+    result = getPatientDetailsFromFhir(patient_id)[0]
+    return {"location" : result[0],
+            "esi" : result[1],
+            "firstencounterdate": result[2],
+            "lastseen": result[3] if result[3] is not None else "" ,
+            "dischargedate": result[4] if result[4] is not None else "",
+            "seenBy": result[5] if result[5] is not None else ""}
 
 
 def get_all_triage_patients(default_ids):
@@ -601,7 +640,7 @@ def get_all_triage_patients(default_ids):
     return ret_list
 
 
-def compile_patient_data(patient,history,notes,emergency_contacts,observations):
+def compile_patient_data(patient,history,notes,emergency_contacts):
 
     ret_obj = {}
 
@@ -611,6 +650,17 @@ def compile_patient_data(patient,history,notes,emergency_contacts,observations):
     ret_obj['emergencyContacts'] = emergency_contacts
 
     return ret_obj
+
+
+def insert_patient_details(patient_id):
+    from triageDB import addPatient, addPatientDetail, addPatientEvent
+    from vars import locations, default_events
+
+    db_id = addPatient(patient_id)
+    # Add a patient detail below with no practitioner (we have not assigned one)
+    detail_id = addPatientDetail(db_id, None, locations[0], "LA21755-6", datetime.now(), None, None, True)
+    # Add a patient event below from SYSTEM saying when we created the patient
+    addPatientEvent(detail_id,default_events['CREATED'],None,0)
 
 
 def create_encounter(patient_id, smart):
@@ -641,4 +691,3 @@ def create_encounter(patient_id, smart):
 
     status = encounter.create(smart.server)
     return status['id']
-

@@ -11,6 +11,12 @@ settings = {
 
 # region patient.py
 
+locations = {  # Default patient locations in hospital
+    0: "TRIAGE",
+    1: "ER",
+    2: "ICU"
+}
+
 esi_lookup = {      # Values from https://loinc.org/75636-1/
     'LA21567-5': ['1', 'ESI-1', 'Resuscitation'],
     'LA21752-3': ['2', 'ESI-2', 'Emergent'],
@@ -18,6 +24,15 @@ esi_lookup = {      # Values from https://loinc.org/75636-1/
     'LA21754-9': ['4', 'ESI-4', 'Less urgent'],
     'LA21755-6': ['5', 'ESI-5', 'Nonurgent'],
 }
+
+reverse_esi_lookup = {      # Values from https://loinc.org/75636-1/
+    '1': ['LA21567-5', 'ESI-1', 'Resuscitation'],
+    '2': ['LA21752-3', 'ESI-2', 'Emergent'],
+    '3': ['LA21753-1', 'ESI-3', 'Urgent'],
+    '4': ['LA21754-9', 'ESI-4', 'Less urgent'],
+    '5': ['LA21755-6', 'ESI-5', 'Nonurgent'],
+}
+
 """Dictionary of LOINC codes for ESI rating. Values are the ESI rating, code, and display."""
 
 marital_status_lookup = {
@@ -95,5 +110,27 @@ systems_injury_lookup = {
     'bloodLoss': ['59770-8', 'Procedure estimated blood loss', 'http://loinc.org'],
 }
 """Dictionary of system injury codes. Values are the code, display, and code type."""
+
+# endregion
+
+# region practitioner.py
+
+work_status = {
+    0: "Preferred",
+    1: "Available",
+    2: "Optional",
+    3: "Unavailable"
+}
+
+# endregion
+
+# region default events (for triagepatientevent)
+
+default_events={
+    "NOTE": "NOTE CREATED",
+    "SEEN": "PATIENT SEEN BY PRACTITIONER",
+    "CREATED": "PATIENT ADMITTED TO TRIAGE",
+    "DISCHARGED": "PATIENT DISCHARGED"
+}
 
 # endregion

@@ -151,9 +151,9 @@ def patient_save():
         status = patient.update(smart.server)
 
         # Create Notes
-        for history in data['history']:
-            if 'id' not in history:
-                addPatientEvent(detail_id, default_events['NOTE'], history['note'], history['author'])
+        for notes in data['notes']:
+            if 'id' not in notes:
+                addPatientEvent(detail_id, default_events['NOTE'], notes['note'], notes['author'])
 
         return status
 

@@ -10,12 +10,13 @@ import fhirclient.models.practitioner as pract
 import fhirclient.models.practitionerrole as practrole
 import fhirclient.models.fhirreference as ref
 from fhirclient.models.patient import PatientContact
-from patient import create_encounter
+from patient import create_encounter, upsert_patient_info
 import random
 from dateutil import parser
 from faker import Faker
 from vars import settings
 from triageDB import *
+
 
 
 class DataGenerator:
@@ -90,7 +91,7 @@ class DataGenerator:
                     and 'resourceType' in status
                     and status['resourceType'] == 'Patient'
             ):
-                addPatients(status['id'])
+                upsert_patient_info(status['id'],None)
                 print(status['id'])
                 create_encounter(status['id'], smart)
                 patient_ids.append(status['id'])
@@ -188,7 +189,7 @@ class DataGenerator:
                     and 'resourceType' in status
                     and status['resourceType'] == 'Practitioner'
             ):
-                addPractioner(status['id'], None, "Doctor")
+                addPractioner(status['id'], 0, "Doctor")
                 print(status['id'])
                 practitioner_ids.append(status['id'])
                 self.generate_practitioner_role(status['id'])

@@ -332,7 +332,7 @@ def getPatientEventsFromFhirId(idFHIR):
 
         cur = conn.cursor()
 
-        sql = "SELECT triagepatienteventid, event_type, notes, author, event_time " \
+        sql = "SELECT triagepatienteventid, event_type, notes, author, to_char(event_time, 'YYYY-MM-DDThh:mm:ss') " \
               "FROM public.tbl_triagepatientevent e " \
               "join tbl_triagepatientdetail d on e.triagepatientdetailid = d.triagepatientdetailid " \
               "join tbl_triagepatient p on p.triagepatientid = d.triagepatientid where p.fhirpatientid = %s;"
@@ -364,7 +364,8 @@ def getPatientDetailsFromFhir(idFHIR):
 
         cur = conn.cursor()
 
-        sql = "SELECT patientcurrentlocation, esi, firstencounterdate, lastseen, dischargedate, r.fhirpractionerid " \
+        sql = "SELECT patientcurrentlocation, esi, firstencounterdate, to_char(lastseen, 'YYYY-MM-DDThh:mm:ss'), " \
+              "dischargedate, r.fhirpractionerid " \
               "FROM public.tbl_triagepatient p " \
               "join tbl_triagepatientdetail d on p.triagepatientid = d.triagepatientid " \
               "left join tbl_triageProfessional r on d.triagepractionerid = r.triageprofessionalid " \

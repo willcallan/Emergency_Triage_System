@@ -18,7 +18,7 @@ CREATE TABLE "tbl_triageprofessional"
 
     "fhirpractionerid" text,
 
-    "triageworkstatusid" bigint,
+    "triageworkstatus" integer,
 
     "professionalType" text COLLATE pg_catalog."default",
 
@@ -35,6 +35,10 @@ CREATE TABLE "tbl_triagepatientdetail"
     "triagepatientid" bigint,
 
     "triagepractionerid" bigint,
+	
+	"patientcurrentlocation" text,
+	
+	"esi" text,
 
     "firstencounterdate" date,
 	
@@ -52,7 +56,7 @@ CREATE TABLE "tbl_triagepatientdetail"
 
         ON UPDATE NO ACTION
 
-        ON DELETE NO ACTION,
+        ON DELETE CASCADE,
 
     CONSTRAINT "tbl_triagepatientdetail_triagepractionerid_fkey" FOREIGN KEY ("triagepractionerid")
 
@@ -60,31 +64,27 @@ CREATE TABLE "tbl_triagepatientdetail"
 
         ON UPDATE NO ACTION
 
-        ON DELETE NO ACTION
-
-
+        ON DELETE CASCADE
 
 );
 
-CREATE TABLE "tbl_triagepatientstatus"
+CREATE TABLE "tbl_triagepatientevent"
 
 (
 
-    "triagepatientstatusid" BIGSERIAL NOT NULL,
+    "triagepatienteventid" BIGSERIAL NOT NULL,
 
     "triagepatientdetailid" bigint,
-
-    "patientcurrentlocation" text,
 	
+	"event_type" text,
+
     "notes" text,
 	
-    "seenby" text,
+    "author" text,
 	
-    "datetimeseen" timestamp ,
-
-    "triageesistatusid" bigint,
-
-    PRIMARY KEY ("triagepatientstatusid"),
+	"event_time" timestamp default now(), 
+	
+    PRIMARY KEY ("triagepatienteventid"),
 
     FOREIGN KEY ("triagepatientdetailid")
 
@@ -92,74 +92,6 @@ CREATE TABLE "tbl_triagepatientstatus"
 
         ON UPDATE NO ACTION
 
-        ON DELETE NO ACTION
-
-
+        ON DELETE CASCADE
 
 );
-
-CREATE TABLE "tbl_triageesistatus"
-
-(
-
-    "triageesistatusid" BIGSERIAL NOT NULL,
-
-    "esi" integer,
-
-    "code" text COLLATE pg_catalog."default",
-
-    "display" text COLLATE pg_catalog."default",
-
-    "datecreated" date,
-
-    CONSTRAINT "tbl_triageesistatus_pkey" PRIMARY KEY ("triageesistatusid")
-
-);
-
-CREATE TABLE "tbl_triageerrorlog"
-
-(
-
-    "triagelogid" BIGSERIAL,
-
-    "errordescription" text COLLATE pg_catalog."default",
-
-    "timestampcreated" date
-
-);
-
-CREATE TABLE "tbl_triageworkstatus"
-
-(
-
-    "triageworkstatusid" BIGSERIAL NOT NULL,
-
-    "longdescription" text COLLATE pg_catalog."default",
-
-    "shortdescription" text COLLATE pg_catalog."default",
-
-    "datecreated" date,
-
-    CONSTRAINT "triageworkstatus_pkey" PRIMARY KEY ("triageworkstatusid")
-
-);
-
-INSERT INTO "tbl_triagepatient" ("fhirpatientid") values ('fc200fa2-12c9-4276-ba4a-e0601d424e55');
-INSERT INTO "tbl_triagepatient" ("fhirpatientid") values ('689892bd-dcbe-41fc-8651-38a1d0893854');
-
-INSERT INTO "tbl_triageprofessional" ("fhirpractionerid", "triageworkstatusid", "professionalType")
- VALUES ('efb5d4ce-dffc-47df-aa6d-05d372fdb407',NULL,'Doctor');
-INSERT INTO "tbl_triageprofessional" ("fhirpractionerid", "triageworkstatusid", "professionalType")
-VALUES ('5e57a286-d7c6-4e2d-9834-7fb48bd32b51',NULL,'Doctor');
-
-INSERT INTO "tbl_triagepatientdetail" ("triagepatientid", "triagepractionerid", "firstencounterdate", "dischargedate", "active") VALUES
-(2,1,'2020-10-28','2020-11-01','FALSE');
-
-
-
-
-
-
-
-
-

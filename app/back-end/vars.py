@@ -133,8 +133,4 @@ default_events={
     "DISCHARGED": "PATIENT DISCHARGED"
 }
 
-default_authors={
-    0: "SYSTEM"
-}
-
 # endregion

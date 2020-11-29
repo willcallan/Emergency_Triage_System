@@ -23,7 +23,6 @@ from fhirclient.models.address import Address
 from fhirclient.models.fhirdate import FHIRDate
 from fhirclient.models.codeableconcept import CodeableConcept
 from fhirclient.models.coding import Coding
-from fhirclient.models.patient import PatientContact
 from dateutil.relativedelta import relativedelta
 import json
 
@@ -143,10 +142,11 @@ def patient_save():
         except:
             last_seen_date = None
 
-        updatePatientDetail(db_id,
+        updatePatientDetail(pat_db_id,
+                            db_id,
                             patient_data['location'],
                             reverse_esi_lookup[patient_data['esi']][0],
-                            last_seen_date, pat_db_id)
+                            last_seen_date)
 
         status = patient.update(smart.server)
 
@@ -221,7 +221,7 @@ def patient_search_id():
 
     # Create the flask return json from the data
 
-    history, notes = get_patient_history_and_notes(patient)
+    notes, history = get_patient_history_and_notes(patient)
 
     all_data = compile_patient_data(
         get_patient_data(patient, smart),
@@ -669,7 +669,7 @@ def compile_patient_data(patient,history,notes,emergency_contacts):
 
 def upsert_patient_info(patient_id, data):
     from triageDB import addPatient, addPatientDetail, addPatientEvent
-    from vars import locations, default_events, default_authors
+    from vars import locations, default_events
 
     if data is not None: # We have request data, most likely an update
         print("stuff")
@@ -678,7 +678,7 @@ def upsert_patient_info(patient_id, data):
         # Add a patient detail below with no practitioner (we have not assigned one)
         detail_id = addPatientDetail(db_id, None, locations[0], "LA21755-6", datetime.now(), None, None, True)
         # Add a patient event below from SYSTEM saying when we created the patient
-        addPatientEvent(detail_id,default_events['CREATED'],None,default_authors[0])
+        addPatientEvent(detail_id,default_events['CREATED'],None,0)
 
 
 def create_encounter(patient_id, smart):

@@ -43,7 +43,8 @@ def patient_save():
 
     import fhirclient.models.practitioner as pract
     from triageDB import addPatientEvent, getPatientDetailIdFromFhir, updatePatientDetail, translateFhirIdtoLocalId
-    from vars import default_events
+    from vars import default_events, reverse_esi_lookup
+    import dateutil.parser
 
     # region Nested Functions
     def create_marital_status(term):
@@ -126,8 +127,6 @@ def patient_save():
         return pt
 
     def update_all_patient_data(data, smart):
-        import dateutil.parser
-        from vars import reverse_esi_lookup
 
         # Update patient info
         patient_data = data['patient']
@@ -167,28 +166,15 @@ def patient_save():
 
         if 'patient' in data_json:  # This signals that we are getting the big multi-part patient object
             patient_data = data_json['patient']
-            if 'id' not in patient_data:
-                # Patient create sent with extra stuff, just strip down to patient
+            # If the patient has no ID (i.e. entered locally), insert them into the server
+            if 'id' not in patient_data or patient_data['id'] == '':
                 patient = populate_patient(patient_data)
                 status = patient.create(smart.server)
                 create_encounter(status['id'],smart)
+                insert_patient_details(status['id'])
             else:
+                # If the patient does have an ID (i.e. they are in the FHIR server), update them
                 status = update_all_patient_data(data_json, smart)
-        else: # This signals that we are getting the solo patient object
-            # If the patient has no ID (i.e. entered locally), insert them into the server
-            if 'id' not in data_json or data_json['id'] == '':
-                patient = populate_patient(data_json)
-                status = patient.create(smart.server)
-                create_encounter(status['id'],smart)
-            # If the patient does have an ID (i.e. they are in the FHIR server), update them
-            else:
-                patient: pat.Patient = pat.Patient.read(data_json['id'], smart.server)
-                patient = modify_patient(patient, data_json)
-                db_id = translateFhirIdtoLocalId(data_json['seenby'], pract.Practitioner)
-
-                updatePatientDetail(db_id, data_json['location'], data_json['esi'],
-                                    data_json['lastseen'])
-                status = patient.update(smart.server)
 
         if (
             status is not None
@@ -667,18 +653,15 @@ def compile_patient_data(patient,history,notes,emergency_contacts):
     return ret_obj
 
 
-def upsert_patient_info(patient_id, data):
+def insert_patient_details(patient_id):
     from triageDB import addPatient, addPatientDetail, addPatientEvent
     from vars import locations, default_events
 
-    if data is not None: # We have request data, most likely an update
-        print("stuff")
-    else: # Just an id is always an insert
-        db_id = addPatient(patient_id)
-        # Add a patient detail below with no practitioner (we have not assigned one)
-        detail_id = addPatientDetail(db_id, None, locations[0], "LA21755-6", datetime.now(), None, None, True)
-        # Add a patient event below from SYSTEM saying when we created the patient
-        addPatientEvent(detail_id,default_events['CREATED'],None,0)
+    db_id = addPatient(patient_id)
+    # Add a patient detail below with no practitioner (we have not assigned one)
+    detail_id = addPatientDetail(db_id, None, locations[0], "LA21755-6", datetime.now(), None, None, True)
+    # Add a patient event below from SYSTEM saying when we created the patient
+    addPatientEvent(detail_id,default_events['CREATED'],None,0)
 
 
 def create_encounter(patient_id, smart):

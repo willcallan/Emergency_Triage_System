@@ -306,8 +306,8 @@ def get_observation_data(observation) -> dict:
         """
         if observation.note:
             for annotation in observation.note:
-                if annotation.text[0:-2] == 'Marked severity:':
-                    return annotation.text[-1:]
+                if annotation.text[0:16] == 'Marked severity:':
+                    return annotation.text[17:]
         return ''
 
     def get_GCS_score(observation) -> str:

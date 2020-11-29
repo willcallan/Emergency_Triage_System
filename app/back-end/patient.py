@@ -463,20 +463,19 @@ def get_address(patient) -> str:
     :param pat.Patient patient: The patient being measured.
     :returns: The address of the patient.
     """
-    address_list = []
+    address_dict = {}
     addr = patient.address
     if addr:
         if addr[0].line:
-            address_list.append(addr[0].line[0])
+            address_dict['street'] = addr[0].line[0] if addr[0].line is not None else ''
         if addr[0].city:
-            address_list.append(addr[0].city)
+            address_dict['city'] = addr[0].city if addr[0].city is not None else ''
         if addr[0].state:
-            address_list.append(addr[0].state)
+            address_dict['state'] = addr[0].state if addr[0].state is not None else ''
         if addr[0].country:
-            address_list.append(addr[0].country)
-        if address_list:
-            return ', '.join(address_list)
-    return ''
+            address_dict['country'] = addr[0].country if addr[0].country is not None else ''
+
+    return address_dict
 
 
 def get_contact_address(contact) -> str:

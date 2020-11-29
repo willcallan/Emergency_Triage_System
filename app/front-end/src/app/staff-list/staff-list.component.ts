@@ -27,7 +27,7 @@ export class StaffListComponent implements OnInit {
   columnDefs = [
     {field: 'professionType', headerName: 'Profession Type'},
     {field: 'name'},
-    {field: 'speciality'},
+    {field: 'specialty'},
     {field: 'email'},
     {field: 'contact'}
   ];
@@ -48,17 +48,6 @@ export class StaffListComponent implements OnInit {
     this.gridApi.setDomLayout('autoHeight');
   }
   rowData=[];
-  /*rowData = [
-    { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Nurse', name: 'Jack', speciality: 'Internal', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Nurse', name: 'Patel', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' },
-    { professionType: 'Doctor', name: 'Liz', speciality: 'Cardiologist', email: 'abc@xyz.com', contact: '000.000.0000' }
-  ]*/
 
   async ngOnInit(): Promise<void> {
 

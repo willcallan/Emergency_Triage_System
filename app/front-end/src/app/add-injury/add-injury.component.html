@@ -51,6 +51,65 @@
   </div>
 
   <div *ngIf="enableSystem">
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>System</mat-label>
+      <mat-select [(ngModel)]="data.system">
+        <mat-option (onSelectionChange)="selectionChange()" *ngFor="let system of systems" [value]="system.value">
+          {{system.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div  *ngIf="data.system == 'bloodLoss'">
+      &nbsp; &nbsp; &nbsp; &nbsp;
+      <mat-form-field appearance="fill" style="width: 100%">
+        <mat-label>Blood Loss</mat-label>
+        <mat-select [(ngModel)]="data.bloodLoss">
+          <mat-option *ngFor="let class of bloodClasses" [value]="class.value">
+            {{class.viewValue}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div  *ngIf="data.system == 'GCS'">
+      &nbsp; &nbsp; &nbsp; &nbsp;
+
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>Eye Opening Response</mat-label>
+      <mat-select [(ngModel)]="data.eyeResponse">
+        <mat-option *ngFor="let response of eyeResponses" [value]="response.value">
+          {{response.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    </div>
+
+
+    <div  *ngIf="data.system == 'GCS'">
+      &nbsp; &nbsp; &nbsp; &nbsp;
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>Verbal Response</mat-label>
+      <mat-select [(ngModel)]="data.verbalResponse">
+        <mat-option *ngFor="let response of verbalResponses" [value]="response.value">
+          {{response.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    </div>
+
+    <div  *ngIf="data.system == 'GCS'">
+      &nbsp; &nbsp; &nbsp; &nbsp;
+    <mat-form-field appearance="fill" style="width: 100%">
+      <mat-label>Motor Response</mat-label>
+      <mat-select [(ngModel)]="data.motorResponse">
+        <mat-option *ngFor="let response of motorResponses" [value]="response.value">
+          {{response.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    </div>
+    &nbsp; &nbsp; &nbsp; &nbsp;
     <mat-form-field style="width: 100%">
       <mat-label>Notes</mat-label>
       <textarea matInput placeholder="" [(ngModel)]="data.notes"></textarea>

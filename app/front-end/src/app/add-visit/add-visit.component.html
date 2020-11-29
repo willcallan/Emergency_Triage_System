@@ -1,7 +1,7 @@
-<h1 mat-dialog-title>Add Visit</h1>
+<h1 mat-dialog-title>Add Note</h1>
 <div mat-dialog-content >
   <mat-form-field style="width: 100%">
-    <mat-label>Notes</mat-label>
+    <mat-label>Note</mat-label>
     <textarea matInput placeholder="" [(ngModel)]="note"></textarea>
   </mat-form-field>
 
@@ -9,5 +9,5 @@
 <br/><br/>
 <div mat-dialog-actions  align="end">
   <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-stroked-button color="primary" [mat-dialog-close]="note" cdkFocusInitial>Add Visit</button>
+  <button mat-stroked-button color="primary" [mat-dialog-close]="note" cdkFocusInitial>Add Note</button>
 </div>

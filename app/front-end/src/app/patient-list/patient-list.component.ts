@@ -35,7 +35,6 @@ export class PatientListComponent implements OnInit {
     {field: 'code'},
     {field: 'display'},
     {field: 'location'},
-    {field: 'status'},
     {field: 'checkedin', headerName: 'Checked-in'},
     {field: 'lastseen', headerName: 'Last Seen'},
     {field: 'seenby', headerName: 'Seen By'},

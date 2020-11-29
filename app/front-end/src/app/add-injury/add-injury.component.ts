@@ -4,7 +4,7 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 export interface DialogData {
   bodyPart: string;
   type: string;
-  painLevel: string;
+  painLevel: number;
   notes: string;
   diagnosis: string;
   severity: string;
@@ -31,6 +31,12 @@ export class AddInjuryComponent implements OnInit {
 
   types: any;
   bodyParts: any;
+  systems: any;
+  bloodClasses: any;
+  eyeResponses: any;
+  verbalResponses: any;
+  motorResponses: any;
+
   enableArea: any = true;
   enableSystem: any = false;
 
@@ -38,7 +44,7 @@ export class AddInjuryComponent implements OnInit {
     this.data= {
       bodyPart: '',
       type:'',
-      painLevel:'',
+      painLevel:0,
       notes:'',
       diagnosis:'',
       severity:'',
@@ -97,19 +103,65 @@ export class AddInjuryComponent implements OnInit {
      {value: 'surgicalIncision', viewValue: 'Surgical Incision'},
      {value: 'trauma', viewValue: 'Trauma'}
     ];
+
+    this.systems = [
+      {value: 'bloodLoss', viewValue: 'Blood Loss'},
+      {value: 'GCS', viewValue: 'Glasgow Coma Scale'},
+      {value: 'smokeInhalation', viewValue: 'Smoke Inhalation'}
+    ];
+
+    this.bloodClasses = [
+      {value: 'Class 1', viewValue: 'Class 1: <750 mL or <15% blood volume'},
+      {value: 'Class 2', viewValue: 'Class 2: 750-1500 mL or 15-30% blood volume'},
+      {value: 'Class 3', viewValue: 'Class 3: 1500-2000 mL or 30-40% blood volume'},
+      {value: 'Class 4', viewValue: 'Class 4: >2000 mL or >40% blood volume'}
+    ];
+
+    this.eyeResponses = [
+      {value: '1', viewValue: 'Spontaneous - open with blinking at baseline'},
+      {value: '2', viewValue: 'To verbal stimuli, command, speech'},
+      {value: '3', viewValue: 'To pain only (not applied to face)'},
+      {value: '4', viewValue: 'No response'}
+    ];
+
+    this.verbalResponses = [
+      {value: '1', viewValue: 'Oriented'},
+      {value: '2', viewValue: 'Confused conversation, but able to answer questions'},
+      {value: '3', viewValue: 'Inappropriate words'},
+      {value: '4', viewValue: 'Incomprehensible speech'},
+      {value: '5', viewValue: 'No response'}
+    ];
+
+    this.motorResponses = [
+      {value: '1', viewValue: 'Obeys commands for movement'},
+      {value: '2', viewValue: 'Purposeful movement to painful stimulus'},
+      {value: '3', viewValue: 'Withdraws in response to pain'},
+      {value: '4', viewValue: 'Flexion in response to pain (decorticate posturing)'},
+      {value: '5', viewValue: 'Extension response in response to pain (decerebrate posturing)'},
+      {value: '6', viewValue: 'No response'}
+    ];
+
   }
-
-
-
-
 
   addInjury(){
     console.log('add');
   }
 
+  selectionChange(){
+    console.log('changed selection');
+    this.data.bloodLoss = '';
+    this.data.eyeResponse = '';
+    this.data.verbalResponse = '';
+    this.data.motorResponse = '';
+  }
+
   updateView(type){
 
     console.log(type);
+    this.data.system = '';
+
+    console.log('enableArea', this.enableArea);
+    console.log('enableSystem', this.enableSystem);
 
     if(type == 'system' && this.enableSystem)
     {
@@ -131,6 +183,9 @@ export class AddInjuryComponent implements OnInit {
       this.enableSystem = false;
     }
 
+    console.log('enableArea', this.enableArea);
+    console.log('enableSystem', this.enableSystem);
+/*
     if(this.enableSystem)
     {
       this.data.typeOfInjury = 'system';
@@ -138,7 +193,7 @@ export class AddInjuryComponent implements OnInit {
     else if(this.enableArea)
     {
       this.data.typeOfInjury = 'area';
-    }
+    }*/
 
     /*
 

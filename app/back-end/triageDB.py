@@ -438,3 +438,24 @@ def updatePatientDetail(triagepatientid, triagepractionerid, patientcurrentlocat
         return True
 
 
+def patientExistsInDB(idFHIR):
+    """ Connect to the PostgreSQL database server """
+    TriagePatientId = ''
+    conn = None
+    try:
+        conn = psycopg2.connect(get_connection_to_db())
+        # create a cursor
+        cur = conn.cursor()
+        sql = """select triagepatientid from tbl_triagepatient where fhirpatientid = %s"""
+        cur.execute(sql, (idFHIR,))
+        TriagePatientId = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+        return TriagePatientId != ''
+

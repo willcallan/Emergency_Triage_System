@@ -223,6 +223,7 @@ def patient_search_no_id():
     """
     Searches for a patient by name and dob, returns a dict of the patient triage data.
     """
+    from triageDB import patientExistsInDB
     patient_first_name = request.args.get('firstname')
     patient_last_name = request.args.get('lastname')
     patient_dob = request.args.get('dob')
@@ -245,9 +246,12 @@ def patient_search_no_id():
     search = pat.Patient.where(struct=search_params)
     patients = search.perform_resources(smart.server)
 
+
+
     ret_list = []
     for p in patients:
-        ret_list.append(get_patient_data(p, smart))
+        if patientExistsInDB(p.id):
+            ret_list.append(get_patient_data(p, smart))
 
     return jsonify(ret_list)
 

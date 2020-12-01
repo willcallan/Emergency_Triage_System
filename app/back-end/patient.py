@@ -42,7 +42,7 @@ def patient_save():
     """
 
     import fhirclient.models.practitioner as pract
-    from triageDB import addPatientEvent, getPatientDetailIdFromFhir, updatePatientDetail, translateFhirIdtoLocalId
+    from triageDB import addPatientEvent, getPatientDetailIdFromFhir, updatePatientDetail, translateFhirIdtoLocalId, updateLastSeen
     from vars import default_events, reverse_esi_lookup
     import dateutil.parser
 
@@ -149,10 +149,18 @@ def patient_save():
 
         status = patient.update(smart.server)
 
+
         # Create Notes
+
+        last_seen_update = False
+
         for notes in data['notes']:
             if 'id' not in notes:
                 addPatientEvent(detail_id, default_events['NOTE'], notes['note'], notes['author'])
+                last_seen_update = True
+
+        if last_seen_update:
+            updateLastSeen(patient_data['id'])
 
         return status
 
@@ -216,6 +224,24 @@ def patient_search_id():
         get_patient_contacts(patient, smart))
 
     return jsonify(all_data)
+
+
+@cross_origin()
+@patient_endpoint.route('/patient/discharge', methods=['GET'])
+def patient_discharge():
+    """
+    Searches for a patient by ID, returns a dict of the patient triage data.
+    """
+    from triageDB import getallPatient
+    from triageDB import dischargePatient
+    patient_id = request.args.get('id')
+
+    if not patient_id:
+        return jsonify("")
+
+    dischargePatient(patient_id)
+
+    return jsonify("OK")
 
 
 @patient_endpoint.route('/patient/search', methods=['GET'])

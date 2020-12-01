@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import axios from 'axios';
+import {NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
   selector: 'app-staff-list',
@@ -13,7 +14,7 @@ export class StaffListComponent implements OnInit {
   config = {
     headers: {'Access-Control-Allow-Origin': '*'}
   };
-  constructor() {
+  constructor(private spinner: NgxSpinnerService) {
   }
 
   defaultColDef = {
@@ -51,9 +52,12 @@ export class StaffListComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
 
+    this.spinner.show();
     let staffUrl = this.baseUrl + 'staff';
     this.rowData = (await axios.get(staffUrl, this.config)).data;
     console.log(this.rowData);
+
+    this.spinner.hide();
   }
 
 }

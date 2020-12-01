@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import axios from 'axios';
 import {AddInjuryComponent} from "../add-injury/add-injury.component";
 import {AddVisitComponent} from "../add-visit/add-visit.component";
 import { MatDialog } from '@angular/material/dialog';
-
+import { NgxSpinnerService } from "ngx-spinner";
 @Component({
   selector: 'app-patient-details',
   templateUrl: './patient-details.component.html',
@@ -12,7 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class PatientDetailsComponent implements OnInit {
 
-  constructor(public dialog: MatDialog, private route: ActivatedRoute) { }
+  constructor(public dialog: MatDialog, private route: ActivatedRoute,private router: Router, private spinner: NgxSpinnerService) { }
 
   patientId:any;
   patient: any
@@ -68,7 +68,19 @@ export class PatientDetailsComponent implements OnInit {
     this.gridApi.setDomLayout('autoHeight');
   }
 
+
+  async discharge() {
+
+    let dischargeUrl = this.baseUrl + 'patient/discharge?id=' + this.patientId;
+    console.log('dischargeUrl',dischargeUrl);
+    let resource = (await axios.get(dischargeUrl)).data;
+    console.log(resource);
+    await this.router.navigate(['/patient-list/']);
+
+  }
+
   async ngOnInit(): Promise<void> {
+    this.spinner.show();
     this.patientId = this.route.snapshot.paramMap.get('id');
 
     let patientUrl = this.baseUrl + 'patient?id=' + this.patientId;
@@ -76,6 +88,24 @@ export class PatientDetailsComponent implements OnInit {
     let staffUrl = this.baseUrl + 'practitioner';
     this.staffList =(await axios.get(staffUrl)).data;
 
+    console.log('staffList',this.staffList);
+
+    let filteredStaff = [];
+
+    for(let i =0; i< this.staffList.length; i++){
+
+      if(this.staffList[i].workstatus !== 'Unavailable')
+      {
+        this.staffList[i].workId = this.getWorkStatusValue(this.staffList[i].workstatus);
+        filteredStaff.push(this.staffList[i]);
+      }
+    }
+
+    this.staffList = filteredStaff;
+    this.staffList.sort((a, b) => a.workId - b.workId);
+
+
+    console.log('staffList',this.staffList);
     console.log('patientData',this.patientData);
     this.patient = this.patientData.patient;
     this.notes = this.patientData.notes;
@@ -108,6 +138,22 @@ export class PatientDetailsComponent implements OnInit {
     console.log(this.observation);
     console.log(this.systemInjuries);
     console.log(this.bodyInjuries);
+    this.spinner.hide();
+  }
+
+  getWorkStatusValue(workStatus){
+
+    if(workStatus == "Preferred")
+      return 0;
+
+    if(workStatus == "Available")
+      return 1;
+
+    if(workStatus == "Optional")
+      return 2;
+
+    if(workStatus == "Unavailable")
+      return 3;
   }
 
   async updateInjuryTable()

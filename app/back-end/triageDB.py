@@ -28,7 +28,9 @@ def getallPatient():
         cur = conn.cursor()
 
         # execute a statement
-        cur.execute("SELECT * FROM public.tbl_triagepatient where active = true;")
+        cur.execute("SELECT * FROM public.tbl_triagepatient t "
+                    "where (select active from tbl_triagepatientdetail d where t.triagepatientid = d.triagepatientid) "
+                    "= true ;")
         result = cur.fetchall()
 
         # close the communication with the PostgreSQL

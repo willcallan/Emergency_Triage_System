@@ -144,6 +144,8 @@ def get_main_role_and_specialty(role_search_results):
 
 
 def get_practitioner_info(staff_id, smart):
+    from triageDB import getPractWorkStatusByFhir
+    from vars import work_status
 
     if not isinstance(staff_id, pract.Practitioner):
         practitioner = pract.Practitioner.read(staff_id,smart.server)
@@ -164,6 +166,7 @@ def get_practitioner_info(staff_id, smart):
         ret_dict['specialty'] = specialties
         ret_dict['email'] = get_telecom_type(practitioner.telecom, 'email')
         ret_dict['contact'] = get_telecom_type(practitioner.telecom, 'phone')
+        ret_dict['workstatus'] = work_status[getPractWorkStatusByFhir(staff_id)]
 
     return ret_dict
 

@@ -28,7 +28,9 @@ def getallPatient():
         cur = conn.cursor()
 
         # execute a statement
-        cur.execute("SELECT * FROM public.tbl_triagepatient;")
+        cur.execute("SELECT * FROM public.tbl_triagepatient t "
+                    "where (select active from tbl_triagepatientdetail d where t.triagepatientid = d.triagepatientid) "
+                    "= true ;")
         result = cur.fetchall()
 
         # close the communication with the PostgreSQL
@@ -449,7 +451,6 @@ def patientExistsInDB(idFHIR):
         sql = """select triagepatientid from tbl_triagepatient where fhirpatientid = %s"""
         cur.execute(sql, (idFHIR,))
         TriagePatientId = cur.fetchone()[0]
-        conn.commit()
         cur.close()
 
     except (Exception, psycopg2.DatabaseError) as error:
@@ -459,3 +460,72 @@ def patientExistsInDB(idFHIR):
             conn.close()
         return TriagePatientId != ''
 
+
+def updateLastSeen(idFHIR):
+    """ Connect to the PostgreSQL database server """
+    TriagePatientId = ''
+    conn = None
+    try:
+        conn = psycopg2.connect(get_connection_to_db())
+        # create a cursor
+        cur = conn.cursor()
+        sql = """update tbl_triagepatientdetail as d set lastseen = now() 
+        from tbl_triagepatient p where p.triagepatientid = d.triagepatientid and p.fhirpatientid = %s"""
+        cur.execute(sql, (idFHIR,))
+        conn.commit()
+        cur.close()
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+        conn.close()
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+        return True
+
+
+def getPractWorkStatusByFhir(practionaerFHIRId):
+    """ Connect to the PostgreSQL database server """
+    PractitionerWorkStatus = 0
+    conn = None
+    try:
+        conn = psycopg2.connect(get_connection_to_db())
+        # create a cursor
+        cur = conn.cursor()
+        sql = """select triageworkstatus from tbl_triageprofessional where fhirpractionerid = %s"""
+        cur.execute(sql, (practionaerFHIRId,))
+        PractitionerWorkStatus = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+        return PractitionerWorkStatus
+
+
+def dischargePatient(idFHIR):
+    """ Connect to the PostgreSQL database server """
+    TriagePatientId = ''
+    conn = None
+    try:
+        conn = psycopg2.connect(get_connection_to_db())
+        # create a cursor
+        cur = conn.cursor()
+        sql = """update tbl_triagepatientdetail as d set dischargedate = now(), active = false 
+        from tbl_triagepatient p where p.triagepatientid = d.triagepatientid and p.fhirpatientid = %s"""
+        cur.execute(sql, (idFHIR,))
+        conn.commit()
+        cur.close()
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+        conn.close()
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+        return True

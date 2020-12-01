@@ -47,22 +47,6 @@ def patient_save():
     import dateutil.parser
 
     # region Nested Functions
-    def create_marital_status(term):
-        """
-        Returns a maritalStatus CodeableConcept based on the term passed in.
-
-        :param str term: The human-readable term for the marital status.
-        :returns: The maritalStatus CodeableConcept, or None.
-        """
-        if term == '':
-            return None
-
-        ms = CodeableConcept()
-        ms_data = marital_status_lookup[term]
-        ms.coding = [Coding({'system': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus', 'code': ms_data[0], 'display': ms_data[1]})]
-        ms.text = ms.coding[0].display
-        return ms
-
     def create_address(addr):
         """
         Returns an Address based on the data passed in.
@@ -172,17 +156,20 @@ def patient_save():
     if data_json:
         smart = client.FHIRClient(settings=settings)
 
-        if 'patient' in data_json:  # This signals that we are getting the big multi-part patient object
+        if 'patient' in data_json:
             patient_data = data_json['patient']
-            # If the patient has no ID (i.e. entered locally), insert them into the server
-            if 'id' not in patient_data or patient_data['id'] == '':
-                patient = populate_patient(patient_data)
-                status = patient.create(smart.server)
-                create_encounter(status['id'],smart)
-                insert_patient_details(status['id'])
-            else:
-                # If the patient does have an ID (i.e. they are in the FHIR server), update them
-                status = update_all_patient_data(data_json, smart)
+        else:
+            patient_data = data_json
+
+        # If the patient has no ID (i.e. entered locally), insert them into the server
+        if 'id' not in patient_data or patient_data['id'] == '':
+            patient = populate_patient(patient_data)
+            status = patient.create(smart.server)
+            create_encounter(status['id'],smart)
+            insert_patient_details(status['id'])
+        elif 'patient' in data_json:
+            # If the patient does have an ID (i.e. they are in the FHIR server), update them
+            status = update_all_patient_data(data_json, smart)
 
         if (
             status is not None
@@ -286,6 +273,23 @@ def patient_search_no_id():
 
 # region Functions
 
+def create_marital_status(term):
+    """
+    Returns a maritalStatus CodeableConcept based on the term passed in.
+
+    :param str term: The human-readable term for the marital status.
+    :returns: The maritalStatus CodeableConcept, or None.
+    """
+    if term == '':
+        return None
+
+    ms = CodeableConcept()
+    ms_data = marital_status_lookup[term]
+    ms.coding = [Coding({'system': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus', 'code': ms_data[0], 'display': ms_data[1]})]
+    ms.text = ms.coding[0].display
+    return ms
+
+
 def populate_patient(data) -> pat.Patient:
     """
     Returns a Patient resource populated with the input data.
@@ -313,6 +317,10 @@ def populate_patient(data) -> pat.Patient:
     # Fill in their gender (male | female | other | unknown)
     if 'gender' in data:
         patient.gender = data['gender']
+    #fill in maritalstatus
+    if 'maritalstatus' in data:
+        if create_marital_status(data['maritalstatus'][0]):
+            patient.maritalStatus = create_marital_status(data['maritalstatus'][0])
     # Fill in their birthdate (YYYY-MM-dd)
     if 'dob' in data:
         birthdate = FHIRDate(data['dob'])

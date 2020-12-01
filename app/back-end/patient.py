@@ -210,7 +210,7 @@ def patient_search_id():
     notes, history = get_patient_history_and_notes(patient)
 
     all_data = compile_patient_data(
-        get_patient_data(patient, smart),
+        get_patient_data(patient, None, smart),
         history,
         notes,
         get_patient_contacts(patient, smart))
@@ -251,7 +251,7 @@ def patient_search_no_id():
     ret_list = []
     for p in patients:
         if patientExistsInDB(p.id):
-            ret_list.append(get_patient_data(p, smart))
+            ret_list.append(get_patient_data(p, None, smart))
 
     return jsonify(ret_list)
 
@@ -323,7 +323,7 @@ def populate_patient(data) -> pat.Patient:
     return patient
 
 
-def get_patient_data(patient, smart) -> dict:
+def get_patient_data(patient, database_record, smart) -> dict:
     """
     Returns dict object for a patient (according to front-end specifications).
 
@@ -336,7 +336,15 @@ def get_patient_data(patient, smart) -> dict:
     if patient:
 
         # Get patient details
-        details = get_patient_details(patient.id)
+        if database_record is not None:
+            details = {"location" : database_record.patientcurrentlocation,
+            "esi" : database_record.esi,
+            "firstencounterdate": database_record.firstencounterdate,
+            "lastseen": database_record.lastseen if database_record.lastseen is not None else "" ,
+            "dischargedate": database_record.dischargedate if database_record.dischargedate is not None else "",
+            "seenBy": database_record.triagepractionerid if database_record.triagepractionerid is not None else ""}
+        else:
+            details = get_patient_details(patient.id)
 
         # Patient data
         patient_dict['id'] = patient.id
@@ -632,14 +640,14 @@ def get_patient_details(patient_id):
             "seenBy": result[5] if result[5] is not None else ""}
 
 
-def get_all_triage_patients(default_ids):
+def get_all_triage_patients(database_info):
 
     ret_list = []
     smart = client.FHIRClient(settings=settings)
 
-    for pat_id in default_ids:
-        patient = pat.Patient.read(pat_id[1], smart.server)
-        ret_list.append(get_patient_data(patient, smart))
+    for patient_info in database_info:
+        patient = pat.Patient.read(patient_info[0], smart.server)
+        ret_list.append(get_patient_data(patient, patient_info, smart))
 
     return ret_list
 

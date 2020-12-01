@@ -15,6 +15,17 @@ app = Flask(__name__)
 app.config.from_pyfile('vars.py')
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+
+@app.route("/generate")
+def hello():
+    gen = DataGenerator()
+    gen.generate_patients(25)
+    gen.generate_practitioners(10)
+
+    return "LOADED DEMO DATA"
+
+
 # Route registration
 app.register_blueprint(hello_world)
 app.register_blueprint(patient_endpoint)

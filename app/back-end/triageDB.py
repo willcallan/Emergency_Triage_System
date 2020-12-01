@@ -15,6 +15,7 @@ def get_connection_to_db():
 
 def getallPatient():
     """ Connect to the PostgreSQL database server """
+    import psycopg2.extras
     conn = None
     try:
         # read connection parameters
@@ -25,12 +26,13 @@ def getallPatient():
         conn = psycopg2.connect(get_connection_to_db())
 
         # create a cursor
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
         # execute a statement
-        cur.execute("SELECT * FROM public.tbl_triagepatient t "
-                    "where (select active from tbl_triagepatientdetail d where t.triagepatientid = d.triagepatientid) "
-                    "= true ;")
+        cur.execute("SELECT p.fhirpatientid, d.triagepractionerid, d.patientcurrentlocation, d.esi, "
+                    "d.firstencounterdate, d.lastseen, d.dischargedate, d.active "
+                    "FROM public.tbl_triagepatient p inner join tbl_triagepatientdetail d "
+                    "on p.triagepatientid  = d.triagepatientid where active = true;")
         result = cur.fetchall()
 
         # close the communication with the PostgreSQL

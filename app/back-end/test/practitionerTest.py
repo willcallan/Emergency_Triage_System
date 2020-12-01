@@ -1,20 +1,23 @@
 import unittest
-import json
+import random
 from app import app
+import triageDB
+from faker import Faker
 
 
 class PractitionerTests(unittest.TestCase):
 
-    def test_default_practitioners(self):
-        with app.test_client() as client:
-            result = client.get("/practitioner")
-            body = result.data.decode('utf-8')
-            print(body)
-            assert 'Dr. Rudy Bayer' in body
+    practitioners = []
+    faker = Faker()
 
-    def test_single_practitioner(self):
+    @classmethod
+    def setUpClass(self):
+        self.practitioners = triageDB.getAllPractitioner()
+
+    def test_search_practitioner(self):
         with app.test_client() as client:
-            result = client.get("/practitioner?id=2ee48909-f016-4f03-a7c8-62f525b54269")
+            practitioner = random.choice(self.practitioners)
+            result = client.get("/practitioner?id="+practitioner['id'])
             body = result.data.decode('utf-8')
             print(body)
-            assert 'Dr. Rudy Bayer' in body
+            assert practitioner['id'] in body

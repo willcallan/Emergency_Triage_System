@@ -47,22 +47,6 @@ def patient_save():
     import dateutil.parser
 
     # region Nested Functions
-    def create_marital_status(term):
-        """
-        Returns a maritalStatus CodeableConcept based on the term passed in.
-
-        :param str term: The human-readable term for the marital status.
-        :returns: The maritalStatus CodeableConcept, or None.
-        """
-        if term == '':
-            return None
-
-        ms = CodeableConcept()
-        ms_data = marital_status_lookup[term]
-        ms.coding = [Coding({'system': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus', 'code': ms_data[0], 'display': ms_data[1]})]
-        ms.text = ms.coding[0].display
-        return ms
-
     def create_address(addr):
         """
         Returns an Address based on the data passed in.
@@ -172,17 +156,20 @@ def patient_save():
     if data_json:
         smart = client.FHIRClient(settings=settings)
 
-        if 'patient' in data_json:  # This signals that we are getting the big multi-part patient object
+        if 'patient' in data_json:
             patient_data = data_json['patient']
-            # If the patient has no ID (i.e. entered locally), insert them into the server
-            if 'id' not in patient_data or patient_data['id'] == '':
-                patient = populate_patient(patient_data)
-                status = patient.create(smart.server)
-                create_encounter(status['id'],smart)
-                insert_patient_details(status['id'])
-            else:
-                # If the patient does have an ID (i.e. they are in the FHIR server), update them
-                status = update_all_patient_data(data_json, smart)
+        else:
+            patient_data = data_json
+
+        # If the patient has no ID (i.e. entered locally), insert them into the server
+        if 'id' not in patient_data or patient_data['id'] == '':
+            patient = populate_patient(patient_data)
+            status = patient.create(smart.server)
+            create_encounter(status['id'],smart)
+            insert_patient_details(status['id'])
+        elif 'patient' in data_json:
+            # If the patient does have an ID (i.e. they are in the FHIR server), update them
+            status = update_all_patient_data(data_json, smart)
 
         if (
             status is not None
@@ -218,7 +205,7 @@ def patient_search_id():
     notes, history = get_patient_history_and_notes(patient)
 
     all_data = compile_patient_data(
-        get_patient_data(patient, smart),
+        get_patient_data(patient, None, smart),
         history,
         notes,
         get_patient_contacts(patient, smart))
@@ -277,7 +264,7 @@ def patient_search_no_id():
     ret_list = []
     for p in patients:
         if patientExistsInDB(p.id):
-            ret_list.append(get_patient_data(p, smart))
+            ret_list.append(get_patient_data(p, None, smart))
 
     return jsonify(ret_list)
 
@@ -285,6 +272,23 @@ def patient_search_no_id():
 
 
 # region Functions
+
+def create_marital_status(term):
+    """
+    Returns a maritalStatus CodeableConcept based on the term passed in.
+
+    :param str term: The human-readable term for the marital status.
+    :returns: The maritalStatus CodeableConcept, or None.
+    """
+    if term == '':
+        return None
+
+    ms = CodeableConcept()
+    ms_data = marital_status_lookup[term]
+    ms.coding = [Coding({'system': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus', 'code': ms_data[0], 'display': ms_data[1]})]
+    ms.text = ms.coding[0].display
+    return ms
+
 
 def populate_patient(data) -> pat.Patient:
     """
@@ -313,6 +317,10 @@ def populate_patient(data) -> pat.Patient:
     # Fill in their gender (male | female | other | unknown)
     if 'gender' in data:
         patient.gender = data['gender']
+    #fill in maritalstatus
+    if 'maritalstatus' in data:
+        if create_marital_status(data['maritalstatus'][0]):
+            patient.maritalStatus = create_marital_status(data['maritalstatus'][0])
     # Fill in their birthdate (YYYY-MM-dd)
     if 'dob' in data:
         birthdate = FHIRDate(data['dob'])
@@ -349,7 +357,7 @@ def populate_patient(data) -> pat.Patient:
     return patient
 
 
-def get_patient_data(patient, smart) -> dict:
+def get_patient_data(patient, database_record, smart) -> dict:
     """
     Returns dict object for a patient (according to front-end specifications).
 
@@ -362,7 +370,15 @@ def get_patient_data(patient, smart) -> dict:
     if patient:
 
         # Get patient details
-        details = get_patient_details(patient.id)
+        if database_record is not None:
+            details = {"location" : database_record.patientcurrentlocation,
+            "esi" : database_record.esi,
+            "firstencounterdate": database_record.firstencounterdate,
+            "lastseen": database_record.lastseen if database_record.lastseen is not None else "" ,
+            "dischargedate": database_record.dischargedate if database_record.dischargedate is not None else "",
+            "seenBy": database_record.triagepractionerid if database_record.triagepractionerid is not None else ""}
+        else:
+            details = get_patient_details(patient.id)
 
         # Patient data
         patient_dict['id'] = patient.id
@@ -658,14 +674,14 @@ def get_patient_details(patient_id):
             "seenBy": result[5] if result[5] is not None else ""}
 
 
-def get_all_triage_patients(default_ids):
+def get_all_triage_patients(database_info):
 
     ret_list = []
     smart = client.FHIRClient(settings=settings)
 
-    for pat_id in default_ids:
-        patient = pat.Patient.read(pat_id[1], smart.server)
-        ret_list.append(get_patient_data(patient, smart))
+    for patient_info in database_info:
+        patient = pat.Patient.read(patient_info[0], smart.server)
+        ret_list.append(get_patient_data(patient, patient_info, smart))
 
     return ret_list
 

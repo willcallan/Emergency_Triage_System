@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
 
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { PatientListComponent } from './patient-list/patient-list.component';
@@ -26,6 +26,7 @@ import { AddVisitComponent } from './add-visit/add-visit.component';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatSliderModule} from '@angular/material/slider';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import { NgxSpinnerModule } from "ngx-spinner";
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
     MatButtonModule,
     BrowserAnimationsModule,
     AppRoutingModule,
+    NgxSpinnerModule,
     MatInputModule,
     MatDividerModule,
     MatSliderModule,
@@ -59,6 +61,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
     CommonModule
   ],
   providers: [],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Router } from '@angular/router';
 
 import { BtnCellRenderer } from "../btn-cell-renderer.component";
+import { NgxSpinnerService } from "ngx-spinner";
 
 @Component({
   selector: 'app-patient-list',
@@ -12,7 +13,7 @@ import { BtnCellRenderer } from "../btn-cell-renderer.component";
 })
 export class PatientListComponent implements OnInit {
 
-  constructor(private router: Router) {  }
+  constructor(private router: Router, private spinner: NgxSpinnerService) {  }
 
   baseUrl = 'http://127.0.0.1:5000/';
   config = {
@@ -85,9 +86,25 @@ export class PatientListComponent implements OnInit {
 
 
   async ngOnInit(): Promise<void> {
+    this.spinner.show();
+
+    let staffUrl = this.baseUrl + 'practitioner';
+    let staffList =(await axios.get(staffUrl)).data;
     let patientsUrl = this.baseUrl + 'patient';
     this.rowData = ((await axios.get(patientsUrl, this.config)).data);
+
+    this.rowData.forEach(function(patient) {
+
+      staffList.forEach(function(staff) {
+        if(patient.seenby !== '' && patient.seenby == staff.id){
+          patient.seenby = staff.name;
+        }
+      });
+    });
+
     console.log(this.rowData);
+
+    this.spinner.hide();
   }
 
 }

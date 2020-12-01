@@ -1,3 +1,4 @@
+<ngx-spinner></ngx-spinner>
 <div class=" d-flex justify-content-center" >
   <div [ngClass]="backgroundColor">
     <br/>
@@ -37,7 +38,7 @@
       </mat-form-field>
 
       <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-      <button mat-flat-button color="" (click)="update()">Update</button>
+      <button mat-flat-button color="" [disabled]="staff == ''" (click)="update()">Update</button>
       <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 
     </h3>
@@ -51,6 +52,8 @@
   <button mat-flat-button color="primary" (click)="addVisit()" [disabled]="patient?.seenby == ''">Add Note</button>
   <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
   <button mat-flat-button color="primary" (click)="addInjury()">Add Injury</button>
+  <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+  <button mat-flat-button color="warn" (click)="discharge()">Discharge</button>
   <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
 </div>
 

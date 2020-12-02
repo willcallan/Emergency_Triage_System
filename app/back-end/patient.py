@@ -42,7 +42,8 @@ def patient_save():
     """
 
     import fhirclient.models.practitioner as pract
-    from triageDB import addPatientEvent, getPatientDetailIdFromFhir, updatePatientDetail, translateFhirIdtoLocalId, updateLastSeen
+    from triageDB import addPatientEvent, getPatientDetailIdFromFhir, updatePatientDetail, translateFhirIdtoLocalId, \
+        updateLastSeen
     from vars import default_events, reverse_esi_lookup
     import dateutil.parser
 
@@ -366,6 +367,9 @@ def get_patient_data(patient, database_record, smart) -> dict:
     :return: Dict of the patient's data.
     """
 
+    from triageDB import translateLocalIdToFhirId
+    import fhirclient.models.practitioner as pract
+
     patient_dict = {}
     if patient:
 
@@ -377,6 +381,10 @@ def get_patient_data(patient, database_record, smart) -> dict:
             "lastseen": database_record.lastseen if database_record.lastseen is not None else "" ,
             "dischargedate": database_record.dischargedate if database_record.dischargedate is not None else "",
             "seenBy": database_record.triagepractionerid if database_record.triagepractionerid is not None else ""}
+
+            if details['seenBy'] != "":
+                details['seenBy'] = translateLocalIdToFhirId(details['seenBy'], pract.Practitioner())
+
         else:
             details = get_patient_details(patient.id)
 

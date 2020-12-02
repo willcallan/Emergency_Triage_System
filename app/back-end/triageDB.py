@@ -531,3 +531,42 @@ def dischargePatient(idFHIR):
         if conn is not None:
             conn.close()
         return True
+
+def translateLocalIdToFhirId(local_id, fhir_object):
+    """ Connect to the PostgreSQL database server """
+    conn = None
+    import fhirclient.models.practitioner as pract
+    import fhirclient.models.patient as pat
+    result = ""
+    try:
+        # read connection parameters
+        # params = config()
+
+        # connect to the PostgreSQL server
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(get_connection_to_db())
+
+        # create a cursor
+        cur = conn.cursor()
+
+        # execute a statement
+        print('PostgreSQL database version:')
+
+        if isinstance(fhir_object, pract.Practitioner):
+            sql = "SELECT fhirpractionerid FROM public.tbl_triageprofessional where triageprofessionalid = %s::bigint;"
+
+        if isinstance(fhir_object, pat.Patient):
+            sql = "SELECT fhirpatientid FROM public.tbl_triagepatient where triagepatientid = %s::bigint;"
+
+        cur.execute(sql, (local_id,))
+        result = cur.fetchall()
+
+        # close the communication with the PostgreSQL
+        cur.close()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+        return result

@@ -1,0 +1,12 @@
+FROM node:12
+
+WORKDIR /app
+RUN mkdir /app/src
+ADD . /app
+RUN npm install
+ENV PATH /app/node_modules/.bin:$PATH
+RUN npm run ng build
+
+EXPOSE 4200
+
+CMD ["ng", "serve", "--host", "0.0.0.0", "--disable-host-check", "--prod=true", "--live-reload=false"]

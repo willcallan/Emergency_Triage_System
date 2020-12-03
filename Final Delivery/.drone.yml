@@ -1,0 +1,26 @@
+kind: pipeline
+name: default
+
+
+
+
+
+
+
+concurrency:
+  limit: 1
+steps:
+- name: deploy_application_image
+  image: plugins/docker
+  settings:
+    repo: gt-build.hdap.gatech.edu/Emergency-Department-Triage-System
+    context: app
+    dockerfile: app/Dockerfile
+    tags:
+      - latest
+      
+trigger:
+  branch:
+    - deploy
+  event:
+    - push

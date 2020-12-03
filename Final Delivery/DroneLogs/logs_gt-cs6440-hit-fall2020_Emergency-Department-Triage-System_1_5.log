@@ -1,0 +1,242 @@
+latest: Pulling from plugins/docker
+Digest: sha256:60f36379eb3f1b27a61f7c0a275dd260387a00af1144345976475b2a35e5ee4f
+Status: Image is up to date for plugins/docker:latest
++ /usr/local/bin/dockerd --data-root /var/lib/docker --host=unix:///var/run/docker.sock
+Registry credentials or Docker config not provided. Guest mode enabled.
++ /usr/local/bin/docker version
+Client: Docker Engine - Community
+ Version:           19.03.8
+ API version:       1.40
+ Go version:        go1.12.17
+ Git commit:        afacb8b7f0
+ Built:             Wed Mar 11 01:22:56 2020
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          19.03.8
+  API version:      1.40 (minimum version 1.12)
+  Go version:       go1.12.17
+  Git commit:       afacb8b7f0
+  Built:            Wed Mar 11 01:30:32 2020
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v1.2.13
+  GitCommit:        7ad184331fa3e55e52b890ea95e65ba581ae3429
+ runc:
+  Version:          1.0.0-rc10
+  GitCommit:        dc9208a3303feef5b3839f4323d9beb36df0a9dd
+ docker-init:
+  Version:          0.18.0
+  GitCommit:        fec3683
++ /usr/local/bin/docker info
+Client:
+ Debug Mode: false
+
+Server:
+ Containers: 0
+  Running: 0
+  Paused: 0
+  Stopped: 0
+ Images: 0
+ Server Version: 19.03.8
+ Storage Driver: overlay2
+  Backing Filesystem: <unknown>
+  Supports d_type: true
+  Native Overlay Diff: true
+ Logging Driver: json-file
+ Cgroup Driver: cgroupfs
+ Plugins:
+  Volume: local
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog
+ Swarm: inactive
+ Runtimes: runc
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: 7ad184331fa3e55e52b890ea95e65ba581ae3429
+ runc version: dc9208a3303feef5b3839f4323d9beb36df0a9dd
+ init version: fec3683
+ Security Options:
+  seccomp
+   Profile: default
+ Kernel Version: 4.15.0-123-generic
+ Operating System: Alpine Linux v3.11 (containerized)
+ OSType: linux
+ Architecture: x86_64
+ CPUs: 4
+ Total Memory: 3.85GiB
+ Name: 4d792231968c
+ ID: PKIL:XWRS:LIXX:KCN5:NG57:WR3F:WZR6:NTTT:3DHC:2U36:7IWS:T2JB
+ Docker Root Dir: /var/lib/docker
+ Debug Mode: false
+ Registry: https://index.docker.io/v1/
+ Labels:
+ Experimental: false
+ Insecure Registries:
+  127.0.0.0/8
+ Live Restore Enabled: false
+ Product License: Community Engine
+
+WARNING: No swap limit support
++ /usr/local/bin/docker build --rm=true -f app/db/Dockerfile -t 6d8854d76f148f61eaf0ea24bde0c9a423543adc app/db --pull=true --label org.label-schema.schema-version=1.0 --label org.label-schema.build-date=2020-12-03T01:21:38Z --label org.label-schema.vcs-ref=6d8854d76f148f61eaf0ea24bde0c9a423543adc --label org.label-schema.vcs-url=https://github.gatech.edu/gt-cs6440-hit-fall2020/Emergency-Department-Triage-System.git
+Sending build context to Docker daemon  5.632kB
+Step 1/10 : FROM postgres:latest
+latest: Pulling from library/postgres
+852e50cd189d: Pulling fs layer
+0269cd569193: Pulling fs layer
+879ff0b54097: Pulling fs layer
+3114d3793d45: Pulling fs layer
+0ee7737137c3: Pulling fs layer
+3fff8dbf0e49: Pulling fs layer
+6b78b1e21dd1: Pulling fs layer
+ddecce665bec: Pulling fs layer
+3fae122f28bd: Pulling fs layer
+69289a4f935b: Pulling fs layer
+56d6c36d6958: Pulling fs layer
+d794b9ea73a0: Pulling fs layer
+1738fda53f17: Pulling fs layer
+bbcdf7c12dbd: Pulling fs layer
+ddecce665bec: Waiting
+3fae122f28bd: Waiting
+3114d3793d45: Waiting
+3fff8dbf0e49: Waiting
+6b78b1e21dd1: Waiting
+0ee7737137c3: Waiting
+69289a4f935b: Waiting
+56d6c36d6958: Waiting
+d794b9ea73a0: Waiting
+1738fda53f17: Waiting
+bbcdf7c12dbd: Waiting
+879ff0b54097: Verifying Checksum
+879ff0b54097: Download complete
+0269cd569193: Verifying Checksum
+0269cd569193: Download complete
+3114d3793d45: Download complete
+852e50cd189d: Verifying Checksum
+852e50cd189d: Download complete
+0ee7737137c3: Verifying Checksum
+0ee7737137c3: Download complete
+3fff8dbf0e49: Verifying Checksum
+3fff8dbf0e49: Download complete
+ddecce665bec: Verifying Checksum
+ddecce665bec: Download complete
+6b78b1e21dd1: Verifying Checksum
+6b78b1e21dd1: Download complete
+56d6c36d6958: Download complete
+69289a4f935b: Verifying Checksum
+69289a4f935b: Download complete
+d794b9ea73a0: Verifying Checksum
+d794b9ea73a0: Download complete
+1738fda53f17: Verifying Checksum
+1738fda53f17: Download complete
+bbcdf7c12dbd: Verifying Checksum
+bbcdf7c12dbd: Download complete
+3fae122f28bd: Verifying Checksum
+3fae122f28bd: Download complete
+852e50cd189d: Pull complete
+0269cd569193: Pull complete
+879ff0b54097: Pull complete
+3114d3793d45: Pull complete
+0ee7737137c3: Pull complete
+3fff8dbf0e49: Pull complete
+6b78b1e21dd1: Pull complete
+ddecce665bec: Pull complete
+3fae122f28bd: Pull complete
+69289a4f935b: Pull complete
+56d6c36d6958: Pull complete
+d794b9ea73a0: Pull complete
+1738fda53f17: Pull complete
+bbcdf7c12dbd: Pull complete
+Digest: sha256:839d6212e7aadb9612fd216374279b72f494c9c4ec517b8e98d768ac9dd74a15
+Status: Downloaded newer image for postgres:latest
+ ---> f51c55ac75ed
+Step 2/10 : ENV POSTGRES_PASSWORD newhat
+ ---> Running in aa4abb3aa4aa
+Removing intermediate container aa4abb3aa4aa
+ ---> a6c7e756e240
+Step 3/10 : ENV POSTGRES_USER edts
+ ---> Running in 96dab6feb311
+Removing intermediate container 96dab6feb311
+ ---> 3c70584e9259
+Step 4/10 : ENV POSTGRES_DB triagedb
+ ---> Running in 675c5138b715
+Removing intermediate container 675c5138b715
+ ---> cad7e34c1e44
+Step 5/10 : WORKDIR /home/edts
+ ---> Running in 7f5cd747a586
+Removing intermediate container 7f5cd747a586
+ ---> c39b2ddb356e
+Step 6/10 : COPY TriageDB.sql /docker-entrypoint-initdb.d
+ ---> 90ff60106f8b
+Step 7/10 : LABEL org.label-schema.build-date=2020-12-03T01:21:38Z
+ ---> Running in e828f1fbaa2d
+Removing intermediate container e828f1fbaa2d
+ ---> 572c13de8d1c
+Step 8/10 : LABEL org.label-schema.schema-version=1.0
+ ---> Running in 5a4620616be7
+Removing intermediate container 5a4620616be7
+ ---> a2397a01f274
+Step 9/10 : LABEL org.label-schema.vcs-ref=6d8854d76f148f61eaf0ea24bde0c9a423543adc
+ ---> Running in 5e44ce81712c
+Removing intermediate container 5e44ce81712c
+ ---> 91bc7acf9882
+Step 10/10 : LABEL org.label-schema.vcs-url=https://github.gatech.edu/gt-cs6440-hit-fall2020/Emergency-Department-Triage-System.git
+ ---> Running in 8d350b522493
+Removing intermediate container 8d350b522493
+ ---> d578d07663f9
+Successfully built d578d07663f9
+Successfully tagged 6d8854d76f148f61eaf0ea24bde0c9a423543adc:latest
++ /usr/local/bin/docker tag 6d8854d76f148f61eaf0ea24bde0c9a423543adc gt-build.hdap.gatech.edu/emergency-department-triage-system-db:latest
++ /usr/local/bin/docker push gt-build.hdap.gatech.edu/emergency-department-triage-system-db:latest
+The push refers to repository [gt-build.hdap.gatech.edu/emergency-department-triage-system-db]
+07c9054e66b7: Preparing
+389b3929c49c: Preparing
+d300f37cc3a6: Preparing
+161fd0c67322: Preparing
+aa8207e5bc6c: Preparing
+5796a6662853: Preparing
+725e23b6689a: Preparing
+70e263450d12: Preparing
+9cd7c4e12078: Preparing
+73cf3adf6112: Preparing
+065d45f80eac: Preparing
+3aac10e9b066: Preparing
+117725f5c702: Preparing
+a01778662164: Preparing
+883d24bc9ae1: Preparing
+f5600c6330da: Preparing
+70e263450d12: Waiting
+5796a6662853: Waiting
+725e23b6689a: Waiting
+73cf3adf6112: Waiting
+065d45f80eac: Waiting
+9cd7c4e12078: Waiting
+a01778662164: Waiting
+883d24bc9ae1: Waiting
+f5600c6330da: Waiting
+3aac10e9b066: Waiting
+117725f5c702: Waiting
+161fd0c67322: Layer already exists
+d300f37cc3a6: Layer already exists
+aa8207e5bc6c: Layer already exists
+5796a6662853: Layer already exists
+725e23b6689a: Layer already exists
+70e263450d12: Layer already exists
+9cd7c4e12078: Layer already exists
+73cf3adf6112: Layer already exists
+065d45f80eac: Layer already exists
+3aac10e9b066: Layer already exists
+a01778662164: Layer already exists
+117725f5c702: Layer already exists
+883d24bc9ae1: Layer already exists
+f5600c6330da: Layer already exists
+389b3929c49c: Pushed
+07c9054e66b7: Pushed
+latest: digest: sha256:ed6332b9ab20824b6c38fb3a8a333e9140264fc0b88efaa0d1d5d4273bc02ec9 size: 3659
++ /usr/local/bin/docker rmi 6d8854d76f148f61eaf0ea24bde0c9a423543adc
+Untagged: 6d8854d76f148f61eaf0ea24bde0c9a423543adc:latest
++ /usr/local/bin/docker system prune -f
+Total reclaimed space: 0B

@@ -1,0 +1,304 @@
+latest: Pulling from plugins/docker
+Digest: sha256:60f36379eb3f1b27a61f7c0a275dd260387a00af1144345976475b2a35e5ee4f
+Status: Image is up to date for plugins/docker:latest
++ /usr/local/bin/dockerd --data-root /var/lib/docker --host=unix:///var/run/docker.sock
+Registry credentials or Docker config not provided. Guest mode enabled.
++ /usr/local/bin/docker version
+Client: Docker Engine - Community
+ Version:           19.03.8
+ API version:       1.40
+ Go version:        go1.12.17
+ Git commit:        afacb8b7f0
+ Built:             Wed Mar 11 01:22:56 2020
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          19.03.8
+  API version:      1.40 (minimum version 1.12)
+  Go version:       go1.12.17
+  Git commit:       afacb8b7f0
+  Built:            Wed Mar 11 01:30:32 2020
+  OS/Arch:          linux/amd64
+  Experimental:     false
+ containerd:
+  Version:          v1.2.13
+  GitCommit:        7ad184331fa3e55e52b890ea95e65ba581ae3429
+ runc:
+  Version:          1.0.0-rc10
+  GitCommit:        dc9208a3303feef5b3839f4323d9beb36df0a9dd
+ docker-init:
+  Version:          0.18.0
+  GitCommit:        fec3683
++ /usr/local/bin/docker info
+Client:
+ Debug Mode: false
+
+Server:
+ Containers: 0
+  Running: 0
+  Paused: 0
+  Stopped: 0
+ Images: 0
+ Server Version: 19.03.8
+ Storage Driver: overlay2
+  Backing Filesystem: <unknown>
+  Supports d_type: true
+  Native Overlay Diff: true
+ Logging Driver: json-file
+ Cgroup Driver: cgroupfs
+ Plugins:
+  Volume: local
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog
+ Swarm: inactive
+ Runtimes: runc
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: 7ad184331fa3e55e52b890ea95e65ba581ae3429
+ runc version: dc9208a3303feef5b3839f4323d9beb36df0a9dd
+ init version: fec3683
+WARNING: No swap limit support
+ Security Options:
+  seccomp
+   Profile: default
+ Kernel Version: 4.15.0-123-generic
+ Operating System: Alpine Linux v3.11 (containerized)
+ OSType: linux
+ Architecture: x86_64
+ CPUs: 4
+ Total Memory: 3.85GiB
+ Name: 10cc79810691
+ ID: BGZD:4JCS:V4K3:JB35:KGTL:L7SI:TZ7Y:VMVH:CND3:WU6T:WQ5F:FPTA
+ Docker Root Dir: /var/lib/docker
+ Debug Mode: false
+ Registry: https://index.docker.io/v1/
+ Labels:
+ Experimental: false
+ Insecure Registries:
+  127.0.0.0/8
+ Live Restore Enabled: false
+ Product License: Community Engine
+
++ /usr/local/bin/docker build --rm=true -f app/front-end/Dockerfile -t 6d8854d76f148f61eaf0ea24bde0c9a423543adc app/front-end --pull=true --label org.label-schema.schema-version=1.0 --label org.label-schema.build-date=2020-12-03T01:17:37Z --label org.label-schema.vcs-ref=6d8854d76f148f61eaf0ea24bde0c9a423543adc --label org.label-schema.vcs-url=https://github.gatech.edu/gt-cs6440-hit-fall2020/Emergency-Department-Triage-System.git
+Sending build context to Docker daemon  1.571MB
+Step 1/13 : FROM node:12
+12: Pulling from library/node
+7919f5b7d602: Pulling fs layer
+0e107167dcc5: Pulling fs layer
+66a456bba435: Pulling fs layer
+5435318a0426: Pulling fs layer
+8494dd328465: Pulling fs layer
+3b01939c6506: Pulling fs layer
+53e99ce7f062: Pulling fs layer
+7e6608095b28: Pulling fs layer
+d75bbd3f7c4b: Pulling fs layer
+5435318a0426: Waiting
+8494dd328465: Waiting
+3b01939c6506: Waiting
+53e99ce7f062: Waiting
+7e6608095b28: Waiting
+d75bbd3f7c4b: Waiting
+0e107167dcc5: Verifying Checksum
+0e107167dcc5: Download complete
+66a456bba435: Verifying Checksum
+66a456bba435: Download complete
+7919f5b7d602: Verifying Checksum
+7919f5b7d602: Download complete
+3b01939c6506: Verifying Checksum
+3b01939c6506: Download complete
+5435318a0426: Verifying Checksum
+5435318a0426: Download complete
+7e6608095b28: Download complete
+53e99ce7f062: Verifying Checksum
+53e99ce7f062: Download complete
+d75bbd3f7c4b: Verifying Checksum
+d75bbd3f7c4b: Download complete
+7919f5b7d602: Pull complete
+8494dd328465: Verifying Checksum
+8494dd328465: Download complete
+0e107167dcc5: Pull complete
+66a456bba435: Pull complete
+5435318a0426: Pull complete
+8494dd328465: Pull complete
+3b01939c6506: Pull complete
+53e99ce7f062: Pull complete
+7e6608095b28: Pull complete
+d75bbd3f7c4b: Pull complete
+Digest: sha256:6e2db75c0a1e19ed760996957aef507f5abe1260ec412e8901855ac4a17a7ada
+Status: Downloaded newer image for node:12
+ ---> e4f1e16b3633
+Step 2/13 : WORKDIR /app
+ ---> Running in 212d21fcc978
+Removing intermediate container 212d21fcc978
+ ---> 07748412ceed
+Step 3/13 : RUN mkdir /app/src
+ ---> Running in 6958d2df59ea
+Removing intermediate container 6958d2df59ea
+ ---> e3907504d0a7
+Step 4/13 : ADD . /app
+ ---> bebbd6a5620d
+Step 5/13 : RUN npm install
+ ---> Running in 3ae216f71814
+[91mnpm[0m[91m WARN read-shrinkwrap This version of npm is compatible with lockfileVersion@1, but package-lock.json was generated for lockfileVersion@2. I'll try to do my best with it!
+[0m
+> core-js@3.6.4 postinstall /app/node_modules/core-js
+> node -e "try{require('./postinstall')}catch(e){}"
+
+[96mThank you for using core-js ([94m https://github.com/zloirock/core-js [96m) for polyfilling JavaScript standard library![0m
+
+[96mThe project needs your help! Please consider supporting of core-js on Open Collective or Patreon: [0m
+[96m>[94m https://opencollective.com/core-js [0m
+[96m>[94m https://www.patreon.com/zloirock [0m
+
+[96mAlso, the author of core-js ([94m https://github.com/zloirock [96m) is looking for a good job -)[0m
+
+
+> @angular/cli@10.1.6 postinstall /app/node_modules/@angular/cli
+> node ./bin/postinstall/script.js
+
+[91mnpm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@1.2.13 (node_modules/webpack-dev-server/node_modules/fsevents):
+npm[0m[91m WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@1.2.13: wanted {"os":"darwin","arch":"any"} (current: {"os":"linux","arch":"x64"})
+[0m[91mnpm WARN optional[0m[91m SKIPPING OPTIONAL DEPENDENCY: fsevents@1.2.13 (node_modules/watchpack-chokidar2/node_modules/fsevents):
+npm[0m[91m [0m[91mWARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@1.2.13: wanted {"os":"darwin","arch":"any"} (current: {"os":"linux","arch":"x64"})
+[0m[91mnpm WARN optional[0m[91m SKIPPING OPTIONAL DEPENDENCY: fsevents@2.1.3 (node_modules/fsevents):
+[0m[91mnpm[0m[91m WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@2.1.3: wanted {"os":"darwin","arch":"any"} (current: {"os":"linux","arch":"x64"})
+[0m[91m
+[0madded 1517 packages from 1225 contributors and audited 1523 packages in 33.812s
+
+68 packages are looking for funding
+  run `npm fund` for details
+
+found 1 high severity vulnerability
+  run `npm audit fix` to fix them, or `npm audit` for details
+Removing intermediate container 3ae216f71814
+ ---> 754b9b7521df
+Step 6/13 : ENV PATH /app/node_modules/.bin:$PATH
+ ---> Running in d625bdf7ccdf
+Removing intermediate container d625bdf7ccdf
+ ---> bb3a5d6456b3
+Step 7/13 : RUN npm run ng build
+ ---> Running in 1a0b34c1c85c
+
+> emergency-department-triage-system@0.0.1 ng /app
+> ng "build"
+
+[91mCompiling @angular/core : es2015 as esm2015
+[0m[91mCompiling @angular/animations : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/keycodes : es2015 as esm2015
+[0m[91mCompiling @angular/common : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/observers : es2015 as esm2015
+[0m[91mCompiling @angular/animations/browser : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/platform : es2015 as esm2015
+[0m[91mCompiling @angular/platform-browser : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/bidi : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/a11y : es2015 as esm2015
+[0m[91mCompiling @angular/forms : es2015 as esm2015
+[0m[91mCompiling @angular/platform-browser/animations : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/collections : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/scrolling : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/portal : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/text-field : es2015 as esm2015
+[0m[91mCompiling @angular/cdk/overlay : es2015 as esm2015
+[0m[91mCompiling @angular/material/core : es2015 as esm2015
+[0m[91mCompiling @angular/common/http : es2015 as esm2015
+[0m[91mCompiling @angular/platform-browser-dynamic : es2015 as esm2015
+[0m[91mCompiling @angular/router : es2015 as esm2015
+[0m[91mCompiling @angular/material/form-field : es2015 as esm2015
+[0m[91mCompiling @angular/material/button : es2015 as esm2015
+[0m[91mCompiling @angular/material/dialog : es2015 as esm2015
+[0m[91mCompiling @ag-grid-community/angular : es2015 as esm2015
+[0m[91mCompiling @angular/material/input : es2015 as esm2015
+[0m[91mCompiling ngx-spinner : es2015 as esm2015
+[0m[91mCompiling ag-grid-angular : es2015 as esm2015
+[0m[91mCompiling @angular/material/datepicker : es2015 as esm2015
+[0m[91mCompiling @angular/material/autocomplete : es2015 as esm2015
+[0m[91mCompiling @angular/material/select : es2015 as esm2015
+[0m[91mCompiling @angular/material/icon : es2015 as esm2015
+[0m[91mCompiling @angular/material/divider : es2015 as esm2015
+[0m[91mCompiling @angular/material/slider : es2015 as esm2015
+[0m[91mCompiling @angular/material/slide-toggle : es2015 as esm2015
+[0m
+chunk {main} main.js, main.js.map (main) 190 kB [initial] [rendered]
+chunk {polyfills} polyfills.js, polyfills.js.map (polyfills) 141 kB [initial] [rendered]
+chunk {runtime} runtime.js, runtime.js.map (runtime) 6.15 kB [entry] [rendered]
+chunk {scripts} scripts.js, scripts.js.map (scripts) 421 kB [entry] [rendered]
+chunk {styles} styles.js, styles.js.map (styles) 1.14 MB [initial] [rendered]
+chunk {vendor} vendor.js, vendor.js.map (vendor) 6.87 MB [initial] [rendered]
+Date: 2020-12-03T01:19:22.149Z - Hash: 4ea72325cf7a27eb3dba - Time: 16383ms
+[91m
+WARNING in /app/src/app/patient-list/patient-list.component.ts depends on 'axios'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.io/guide/build#configuring-commonjs-dependencies[0m[91m
+[0mRemoving intermediate container 1a0b34c1c85c
+ ---> 42ba4f92e626
+Step 8/13 : EXPOSE 4200
+ ---> Running in a9ccecbc5e60
+Removing intermediate container a9ccecbc5e60
+ ---> 022d6aca2671
+Step 9/13 : CMD ["ng", "serve", "--host", "0.0.0.0", "--disable-host-check", "--prod=true", "--live-reload=false"]
+ ---> Running in 34f36c068b7c
+Removing intermediate container 34f36c068b7c
+ ---> 059b4f19eae4
+Step 10/13 : LABEL org.label-schema.build-date=2020-12-03T01:17:37Z
+ ---> Running in 6424d535b44a
+Removing intermediate container 6424d535b44a
+ ---> d35a2ee6ecef
+Step 11/13 : LABEL org.label-schema.schema-version=1.0
+ ---> Running in 1736d584dfdb
+Removing intermediate container 1736d584dfdb
+ ---> 061577823945
+Step 12/13 : LABEL org.label-schema.vcs-ref=6d8854d76f148f61eaf0ea24bde0c9a423543adc
+ ---> Running in f12603de0b02
+Removing intermediate container f12603de0b02
+ ---> 431955ff1162
+Step 13/13 : LABEL org.label-schema.vcs-url=https://github.gatech.edu/gt-cs6440-hit-fall2020/Emergency-Department-Triage-System.git
+ ---> Running in 6ef9cee0dcc3
+Removing intermediate container 6ef9cee0dcc3
+ ---> d9eccc52b3ae
+Successfully built d9eccc52b3ae
+Successfully tagged 6d8854d76f148f61eaf0ea24bde0c9a423543adc:latest
++ /usr/local/bin/docker tag 6d8854d76f148f61eaf0ea24bde0c9a423543adc gt-build.hdap.gatech.edu/emergency-department-triage-system:latest
++ /usr/local/bin/docker push gt-build.hdap.gatech.edu/emergency-department-triage-system:latest
+The push refers to repository [gt-build.hdap.gatech.edu/emergency-department-triage-system]
+18eaa762cc85: Preparing
+4cff555c1d6d: Preparing
+ef0c553f4602: Preparing
+5cf97fdca501: Preparing
+d153c64f7cd5: Preparing
+9f7aff01b81a: Preparing
+1291be563d57: Preparing
+2d48a982d072: Preparing
+0c6d2a8d3a7e: Preparing
+6ad22fbe53ce: Preparing
+f04853d2d299: Preparing
+9f07fffa6fe1: Preparing
+6c5a5125b341: Preparing
+26711ab4f3b6: Preparing
+2d48a982d072: Waiting
+0c6d2a8d3a7e: Waiting
+6ad22fbe53ce: Waiting
+9f7aff01b81a: Waiting
+f04853d2d299: Waiting
+9f07fffa6fe1: Waiting
+6c5a5125b341: Waiting
+26711ab4f3b6: Waiting
+d153c64f7cd5: Pushed
+5cf97fdca501: Pushed
+9f7aff01b81a: Layer already exists
+1291be563d57: Layer already exists
+2d48a982d072: Layer already exists
+0c6d2a8d3a7e: Layer already exists
+f04853d2d299: Layer already exists
+6ad22fbe53ce: Layer already exists
+9f07fffa6fe1: Layer already exists
+6c5a5125b341: Layer already exists
+26711ab4f3b6: Layer already exists
+ef0c553f4602: Pushed
+18eaa762cc85: Pushed
+4cff555c1d6d: Pushed
+latest: digest: sha256:2922a1e2903403c3ee61ee859071bcbb8ecf376be47e9796a1e5c56c947a3340 size: 3264
++ /usr/local/bin/docker rmi 6d8854d76f148f61eaf0ea24bde0c9a423543adc
+Untagged: 6d8854d76f148f61eaf0ea24bde0c9a423543adc:latest
++ /usr/local/bin/docker system prune -f
+Total reclaimed space: 0B

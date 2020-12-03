@@ -1,0 +1,137 @@
++ sleep 10
++ docker build -t deploytok8s -f ./HDAP_helm_deploy_templates/deploy/Dockerfile .
+Sending build context to Docker daemon     16MB
+Step 1/6 : FROM gt-build.hdap.gatech.edu/hdap_helm_prj_chart_builder:1.0.0 AS templateBuilder
+1.0.0: Pulling from hdap_helm_prj_chart_builder
+2004ee2154b4: Pulling fs layer
+3a3f1549d492: Pulling fs layer
+84d57fc99c15: Pulling fs layer
+9ce8c702093d: Pulling fs layer
+907937f57d50: Pulling fs layer
+9ce8c702093d: Waiting
+db328c19241d: Pulling fs layer
+907937f57d50: Waiting
+162753355b97: Pulling fs layer
+3068faec39a1: Pulling fs layer
+c31994f0e369: Pulling fs layer
+142f8c8c4bb4: Pulling fs layer
+305f58b5a55f: Pulling fs layer
+ebafbb26c704: Pulling fs layer
+94b7a90a293e: Pulling fs layer
+db328c19241d: Waiting
+162753355b97: Waiting
+3068faec39a1: Waiting
+c31994f0e369: Waiting
+305f58b5a55f: Waiting
+94b7a90a293e: Waiting
+142f8c8c4bb4: Waiting
+ebafbb26c704: Waiting
+84d57fc99c15: Verifying Checksum
+84d57fc99c15: Download complete
+9ce8c702093d: Verifying Checksum
+9ce8c702093d: Download complete
+907937f57d50: Verifying Checksum
+907937f57d50: Download complete
+2004ee2154b4: Verifying Checksum
+2004ee2154b4: Download complete
+db328c19241d: Verifying Checksum
+db328c19241d: Download complete
+162753355b97: Verifying Checksum
+162753355b97: Download complete
+3068faec39a1: Verifying Checksum
+3068faec39a1: Download complete
+c31994f0e369: Verifying Checksum
+c31994f0e369: Download complete
+142f8c8c4bb4: Verifying Checksum
+142f8c8c4bb4: Download complete
+305f58b5a55f: Verifying Checksum
+305f58b5a55f: Download complete
+94b7a90a293e: Verifying Checksum
+94b7a90a293e: Download complete
+ebafbb26c704: Verifying Checksum
+ebafbb26c704: Download complete
+3a3f1549d492: Verifying Checksum
+3a3f1549d492: Download complete
+2004ee2154b4: Pull complete
+3a3f1549d492: Pull complete
+84d57fc99c15: Pull complete
+9ce8c702093d: Pull complete
+907937f57d50: Pull complete
+db328c19241d: Pull complete
+162753355b97: Pull complete
+3068faec39a1: Pull complete
+c31994f0e369: Pull complete
+142f8c8c4bb4: Pull complete
+305f58b5a55f: Pull complete
+ebafbb26c704: Pull complete
+94b7a90a293e: Pull complete
+Digest: sha256:8ecdda92da85eb8fc0dbdca8341a56502423752d57d93d5d297ec8cdbd51fe81
+Status: Downloaded newer image for gt-build.hdap.gatech.edu/hdap_helm_prj_chart_builder:1.0.0
+ ---> 57e58966becc
+Step 2/6 : COPY ./values.yaml /apps/helm/application/values.yaml
+ ---> 432f680f3edb
+Step 3/6 : RUN bash -c "./generateTemplates.sh"
+ ---> Running in f64d341b5d10
+Generating Helm templates based on data in values.yaml
+Creating chart backend
+Creating chart database
+Creating chart frontend
+Global section in values.yaml does not generate a specific template. It's value will set a namespace for deployment, but is not needed to populate a specific template.
+Completed Helm template generation.
+Removing intermediate container f64d341b5d10
+ ---> 8c14ef24810e
+Step 4/6 : FROM build.hdap.gatech.edu/hdap_helm_prj_deployer_cs6440:1.0.0
+1.0.0: Pulling from hdap_helm_prj_deployer_cs6440
+19d2e6414e5f: Pulling fs layer
+26950ee3a360: Pulling fs layer
+d51fb5c79a14: Pulling fs layer
+605bf27dabf7: Pulling fs layer
+0a18a09290b6: Pulling fs layer
+c13ef6beab27: Pulling fs layer
+c13ef6beab27: Waiting
+0a18a09290b6: Waiting
+605bf27dabf7: Waiting
+26950ee3a360: Verifying Checksum
+26950ee3a360: Download complete
+d51fb5c79a14: Verifying Checksum
+d51fb5c79a14: Download complete
+0a18a09290b6: Verifying Checksum
+0a18a09290b6: Download complete
+19d2e6414e5f: Verifying Checksum
+19d2e6414e5f: Download complete
+c13ef6beab27: Verifying Checksum
+c13ef6beab27: Download complete
+605bf27dabf7: Verifying Checksum
+605bf27dabf7: Download complete
+19d2e6414e5f: Pull complete
+26950ee3a360: Pull complete
+d51fb5c79a14: Pull complete
+605bf27dabf7: Pull complete
+0a18a09290b6: Pull complete
+c13ef6beab27: Pull complete
+Digest: sha256:f80e39ad3eb684cdcbe9f2753b0285819794606c4fda5e6b8b7be42b5bed2790
+Status: Downloaded newer image for build.hdap.gatech.edu/hdap_helm_prj_deployer_cs6440:1.0.0
+ ---> 12c45ffec751
+Step 5/6 : ENV NAMESPACE ns-emergency-department-triage-system-2
+ ---> Running in db561907675b
+Removing intermediate container db561907675b
+ ---> 58a8dc1aa2a5
+Step 6/6 : COPY --from=templateBuilder /apps/helm/$K8S_CONFIG_FILE $K8S_CONFIG_FILE
+ ---> 9c8cbd497b04
+Successfully built 9c8cbd497b04
+Successfully tagged deploytok8s:latest
++ docker run deploytok8s
+deployment.extensions "backend" deleted
+deployment.extensions "database" deleted
+deployment.extensions "frontend" deleted
+service "backend-service" deleted
+service "database-service" deleted
+service "frontend-service" deleted
+No resources found
+No resources found
+service/backend-service created
+service/database-service created
+service/frontend-service created
+deployment.extensions/backend created
+deployment.extensions/database created
+deployment.extensions/frontend created

@@ -1,0 +1,2 @@
++ userns=ns-emergency-department-triage-system-2
++ sed -i "s/REPLACE_WITH_NAMESPACE/$userns/g" ./HDAP_helm_deploy_templates/deploy/Dockerfile

@@ -1,0 +1,7 @@
+Initialized empty Git repository in /drone/src/.git/
++ git fetch origin +refs/heads/deploy:
+From https://github.gatech.edu/gt-cs6440-hit-fall2020/Emergency-Department-Triage-System
+ * branch            deploy     -> FETCH_HEAD
+ * [new branch]      deploy     -> origin/deploy
++ git checkout 6d8854d76f148f61eaf0ea24bde0c9a423543adc -b deploy
+Switched to a new branch 'deploy'

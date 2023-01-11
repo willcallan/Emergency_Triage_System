@@ -1,5 +1,7 @@
 Original repository found at https://github.gatech.edu/gt-cs6440-hit-fall2020/Emergency-Department-Triage-System
 
+I (William Callan) contributed to /app/back-end code.
+
 
 # Emergency Department Triage System
 

@@ -1,3 +1,6 @@
+Original repository found at https://github.gatech.edu/gt-cs6440-hit-fall2020/Emergency-Department-Triage-System
+
+
 # Emergency Department Triage System
 
 To use this tool, follow instructions at https://github.gatech.edu/wcallan3/Emergency_Department_Triage_System/blob/master/Final%20Delivery/Documentation/Manual%20-%20Team%20NewHat.pdf

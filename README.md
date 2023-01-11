@@ -5,7 +5,7 @@ I (William Callan) contributed to /app/back-end/ code and documentation.
 
 # Emergency Department Triage System
 
-To use this tool, follow instructions at https://github.gatech.edu/wcallan3/Emergency_Department_Triage_System/blob/master/Final%20Delivery/Documentation/Manual%20-%20Team%20NewHat.pdf
+To use this tool, follow instructions at https://github.com/willcallan/Emergency_Triage_System/blob/master/Final%20Delivery/Documentation/Manual%20-%20Team%20NewHat.pdf
 
 
 # Project Plan
